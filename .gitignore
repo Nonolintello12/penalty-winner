@@ -1,0 +1,10 @@
+# Fichiers que Git doit IGNORER (ne jamais sauvegarder).
+
+# Fichier caché que le Mac crée tout seul dans chaque dossier
+.DS_Store
+
+# Dossier de travail de Vercel
+.vercel
+
+# Dossier des bibliothèques, s'il y en a un jour
+node_modules

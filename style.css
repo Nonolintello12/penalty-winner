@@ -1,0 +1,71 @@
+/* ---------------------------------------------------------------
+   Le style de la PAGE (le jeu lui-même est dessiné dans le canvas
+   par game.js). Ici on habille juste ce qu'il y a autour.
+
+   Tu peux changer les couleurs : cherche les codes qui commencent
+   par # — ce sont des couleurs.
+   --------------------------------------------------------------- */
+
+/* Les "variables" : on nomme une couleur une fois ici, et on la
+   réutilise partout en dessous. Change-la ici → ça change partout. */
+:root {
+  --fond: #08111f;
+  --fond-clair: #122238;
+  --texte: #e9eff9;
+  --jaune: #ffd93d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+
+  background: radial-gradient(circle at 50% 0%, var(--fond-clair), var(--fond) 70%);
+  color: var(--texte);
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+
+main {
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 18px;
+  font-size: 30px;
+  letter-spacing: 0.5px;
+}
+
+/* Le canvas fait 800x500 pixels "en interne" (voir index.html),
+   mais on lui dit de rétrécir tout seul sur un petit écran. */
+canvas {
+  display: block;
+  width: 800px;
+  max-width: 92vw;
+  height: auto;
+
+  border-radius: 14px;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.6);
+}
+
+.info {
+  margin: 18px 0 0;
+  font-size: 14px;
+  opacity: 0.75;
+}
+
+.info strong {
+  color: var(--jaune);
+}
+
+/* Sur téléphone, on réduit un peu le titre */
+@media (max-width: 480px) {
+  h1 { font-size: 23px; }
+}
