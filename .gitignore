@@ -8,3 +8,4 @@
 
 # Dossier des bibliothèques, s'il y en a un jour
 node_modules
+.env*
