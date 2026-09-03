@@ -101,6 +101,14 @@
           <label for="create-name">Ton prénom</label>
           <input id="create-name" type="text" maxlength="16" placeholder="Ton prénom">
         </div>
+        <div class="field mode-field" id="mode-field" style="display:none;">
+          <label>Mode de partie</label>
+          <div class="mode-toggle">
+            <button type="button" class="mode-btn active" id="mode-btn-classic" data-mode="classic">Classique</button>
+            <button type="button" class="mode-btn" id="mode-btn-ranked" data-mode="ranked">Classée</button>
+          </div>
+          <p class="mode-hint" id="mode-hint">Amical : ton rang ne bouge pas.</p>
+        </div>
         <p class="rule-line">
           Tu vas recevoir un code à 4 lettres. Envoie-le à ton ami (par message,
           appel...) pour qu'il rejoigne ta partie depuis son ordinateur.
@@ -152,7 +160,7 @@
         <div class="underline"></div>
       </div>
     </div>
-    <p class="target-note">Premier à <strong>10 buts</strong> remporte le match</p>
+    <p class="target-note">Premier à <strong>10 buts</strong> remporte le match <span class="mode-pill" id="mode-pill" style="display:none;"></span></p>
 
     <!-- SHOOT / KEEP -->
     <section class="screen" id="screen-pitch">

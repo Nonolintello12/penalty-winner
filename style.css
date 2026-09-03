@@ -195,6 +195,23 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
   border-radius:10px; padding:12px 14px; margin:0 0 22px;
   color:var(--gold); font-weight:700; font-size:14.5px;
 }
+.promotion-banner.demote{
+  background:rgba(230,57,70,.12); border-color:rgba(230,57,70,.4); color:var(--save-red);
+}
+
+.mode-toggle{ display:flex; gap:8px; margin-bottom:6px; }
+.mode-btn{
+  flex:1; padding:9px; border-radius:8px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.14); background:transparent;
+  color:#9FB0D6; font-family:'Work Sans',sans-serif; font-weight:700; font-size:13px;
+}
+.mode-btn.active{ background:var(--gold); color:#241900; border-color:var(--gold); }
+.mode-hint{ font-size:11.5px; color:#7C8CB4; margin:0; }
+.mode-pill{
+  display:inline-block; margin-left:6px; padding:2px 8px; border-radius:100px;
+  background:rgba(255,199,44,.15); color:var(--gold); font-weight:700; font-size:11px;
+  vertical-align:middle;
+}
 
 /* ---------- Waiting room ---------- */
 .waiting-card{

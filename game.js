@@ -78,15 +78,20 @@
     const bar = document.getElementById('profile-bar');
     const createNameField = document.getElementById('create-name-field');
     const joinNameField = document.getElementById('join-name-field');
+    const modeField = document.getElementById('mode-field');
     if (!currentProfile) {
       bar.style.display = 'none';
       createNameField.style.display = '';
       joinNameField.style.display = '';
+      modeField.style.display = 'none';
+      selectedMode = 'classic';
+      setModeButtons('classic');
       return;
     }
     bar.style.display = 'block';
     createNameField.style.display = 'none';
     joinNameField.style.display = 'none';
+    modeField.style.display = 'block';
     document.getElementById('profile-bar-name').textContent = currentProfile.username;
     document.getElementById('profile-bar-rank').textContent = currentProfile.rankName;
     const fill = document.getElementById('profile-bar-progress-fill');
@@ -105,6 +110,22 @@
     renderProfileBar();
     showScreen('setup');
   }
+
+  // ---------- Mode de partie : classique ou classée ----------
+  let selectedMode = 'classic';
+  const modeBtnClassic = document.getElementById('mode-btn-classic');
+  const modeBtnRanked = document.getElementById('mode-btn-ranked');
+  const modeHint = document.getElementById('mode-hint');
+  function setModeButtons(mode) {
+    selectedMode = mode;
+    modeBtnClassic.classList.toggle('active', mode === 'classic');
+    modeBtnRanked.classList.toggle('active', mode === 'ranked');
+    modeHint.textContent = mode === 'ranked'
+      ? 'Classée : victoire = +1 vers le palier suivant, défaite = -2.'
+      : 'Amical : ton rang ne bouge pas.';
+  }
+  modeBtnClassic.addEventListener('click', () => setModeButtons('classic'));
+  modeBtnRanked.addEventListener('click', () => setModeButtons('ranked'));
 
   // Onglets Créer un profil / Se connecter
   const ptabBtnNew = document.getElementById('ptab-btn-new');
@@ -222,7 +243,11 @@
     const name = currentProfile ? currentProfile.username : (document.getElementById('create-name').value.trim() || 'Joueur 1');
     btnCreate.disabled = true;
     try {
-      const data = await api('create', { name, profileUsername: currentProfile ? currentProfile.username : undefined });
+      const data = await api('create', {
+        name,
+        profileUsername: currentProfile ? currentProfile.username : undefined,
+        mode: currentProfile ? selectedMode : 'classic',
+      });
       roomCode = data.code;
       myRole = data.role;
       sessionStorage.setItem('pw_code', roomCode);
@@ -390,6 +415,13 @@
     document.getElementById('score-p2-num').textContent = state.scores[1];
     document.getElementById('score-p1').classList.toggle('active', state.shooterIdx === 0);
     document.getElementById('score-p2').classList.toggle('active', state.shooterIdx === 1);
+    const pill = document.getElementById('mode-pill');
+    if (state.mode === 'ranked') {
+      pill.style.display = 'inline-block';
+      pill.textContent = 'CLASSÉE';
+    } else {
+      pill.style.display = 'none';
+    }
   }
 
   function spawnConfetti() {
@@ -502,18 +534,31 @@
 
     const banner = document.getElementById('promotion-banner');
     banner.style.display = 'none';
+    banner.classList.remove('demote');
 
     const promo = state.lastPromotion;
-    if (currentProfile && promo && promo.username === currentProfile.username) {
+    const demo = state.lastDemotion;
+    const myPromo = currentProfile && promo && promo.username === currentProfile.username ? promo : null;
+    const myDemo = currentProfile && demo && demo.username === currentProfile.username ? demo : null;
+
+    if (myPromo || myDemo) {
       try {
         const data = await profileApi('login', { username: currentProfile.username, secretCode: currentProfileSecret });
         currentProfile = data.profile;
         renderProfileBar();
       } catch (e) { /* on garde l'ancien affichage si le rafraîchissement échoue */ }
+
       banner.style.display = 'block';
-      banner.textContent = promo.promoted
-        ? '🎉 Tu passes ' + promo.rankName + ' !'
-        : 'Victoire enregistrée pour ton rang (' + currentProfile.rankName + ').';
+      if (myPromo) {
+        banner.textContent = myPromo.promoted
+          ? '🎉 Tu passes ' + myPromo.rankName + ' !'
+          : 'Victoire enregistrée pour ton rang (' + currentProfile.rankName + ').';
+      } else {
+        banner.classList.add('demote');
+        banner.textContent = myDemo.demoted
+          ? '📉 Tu redescends ' + myDemo.rankName + '.'
+          : 'Défaite classée : -2 victoires (' + currentProfile.rankName + ').';
+      }
     }
 
     showScreen('gameover');

@@ -5,7 +5,7 @@
 // chacun sur son ordinateur - voient la même partie.
 
 const { getRedis } = require('../lib/redis');
-const { recordWin, TIERS } = require('../lib/ranks');
+const { recordWin, recordLoss, TIERS } = require('../lib/ranks');
 
 const redis = getRedis();
 
@@ -29,8 +29,9 @@ function clampPct(v) {
   return Math.max(2, Math.min(98, Number(v)));
 }
 
-function freshState(name1, profileUsername1) {
+function freshState(name1, profileUsername1, mode) {
   return {
+    mode: mode === 'ranked' ? 'ranked' : 'classic',
     players: [name1, null],
     profiles: [profileUsername1 || null, null], // pseudo du compte classé, si connecté
     scores: [0, 0],
@@ -41,7 +42,8 @@ function freshState(name1, profileUsername1) {
     lastResult: null,
     revealUntil: null,
     winner: null,
-    lastPromotion: null, // { username, rankName, promoted } rempli si quelqu'un a gagné en étant connecté
+    lastPromotion: null, // { username, rankName, promoted } rempli si le vainqueur a gagné en étant connecté (mode classé)
+    lastDemotion: null, // { username, rankName, demoted } rempli si le perdant a un profil (mode classé)
     version: 1,
   };
 }
@@ -112,7 +114,7 @@ module.exports = async (req, res) => {
           if (!(await redis.get(roomKey(code)))) break;
           code = randomCode();
         }
-        const state = freshState(name, profileUsername);
+        const state = freshState(name, profileUsername, body.mode);
         await saveState(code, state);
         return res.status(200).json({ code, role: 'p1', state: redactForRole(state, 'p1') });
       }
@@ -169,16 +171,25 @@ module.exports = async (req, res) => {
         state.lastResult = { isSave, shooterIdx: state.shooterIdx, shotPos: state.shotPos, keepPos: state.keepPos };
         if (state.scores[state.shooterIdx] >= WIN_TARGET) {
           state.winner = state.shooterIdx;
-          const winnerUsername = state.profiles && state.profiles[state.winner];
-          if (winnerUsername) {
-            const result = await recordWin(redis, winnerUsername);
-            if (result) {
-              const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
-              state.lastPromotion = {
-                username: winnerUsername,
-                rankName: tier.name,
-                promoted: result.promoted,
-              };
+
+          if (state.mode === 'ranked' && state.profiles) {
+            const loserIdx = state.winner === 0 ? 1 : 0;
+            const winnerUsername = state.profiles[state.winner];
+            const loserUsername = state.profiles[loserIdx];
+
+            if (winnerUsername) {
+              const result = await recordWin(redis, winnerUsername);
+              if (result) {
+                const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
+                state.lastPromotion = { username: winnerUsername, rankName: tier.name, promoted: result.promoted };
+              }
+            }
+            if (loserUsername) {
+              const result = await recordLoss(redis, loserUsername);
+              if (result) {
+                const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
+                state.lastDemotion = { username: loserUsername, rankName: tier.name, demoted: result.demoted };
+              }
             }
           }
         }
