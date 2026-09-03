@@ -1,36 +1,38 @@
-# ⚽ Tirs au but
+# ⚽ Tirs au but — Mondial 2026
 
-Mon jeu de foot, fait à la main en HTML, CSS et JavaScript.
+Un jeu de tirs au but à deux, **en ligne**, chacun sur son propre ordinateur.
 
 ## Comment y jouer
 
-Il est en ligne : il suffit d'ouvrir le lien. Rien à installer.
+1. Ouvre le lien du jeu.
+2. Un joueur clique sur **"Créer une partie"** → il reçoit un code à 4 lettres.
+3. Il envoie ce code (ou le lien "Copier le lien") à son ami.
+4. L'ami clique sur **"Rejoindre une partie"** et entre le code.
+5. La partie commence : chacun tire et garde les cages à tour de rôle.
+   Premier à 10 buts gagne.
 
 ## Comment il est fabriqué
 
-Trois fichiers, c'est tout :
-
 | Fichier | À quoi il sert |
 |---|---|
-| `index.html` | La page web (elle contient le canvas, la zone de dessin) |
-| `style.css` | Les couleurs et la mise en page autour du jeu |
-| `game.js` | **Tout le jeu** : le stade, le ballon, le gardien, les règles |
+| `index.html` | La page web (les écrans : créer/rejoindre, terrain, fin de partie) |
+| `style.css` | Les couleurs et la mise en page |
+| `game.js` | Le jeu côté navigateur : dessine le terrain, envoie les actions au serveur |
+| `api/room.js` | Le serveur (fonction Vercel) : garde l'état de chaque partie |
 
-Pas de bibliothèque, pas d'outil compliqué : tout le code du jeu est
-lisible dans `game.js`.
+Pas de compte, pas de mot de passe : juste un code à 4 lettres par partie.
 
-## Les missions
+## Comment la synchronisation marche
 
-- [x] **1.** Le décor : le but, le gardien, le ballon
-- [ ] **2.** Viser et tirer
-- [ ] **3.** But ou arrêt ? + le score
-- [ ] **4.** 🤖 Le gardien **réagit** (il suit le ballon)
-- [ ] **5.** 🤖 Le gardien **prédit** où le ballon va arriver
-- [ ] **6.** 🤖 Le gardien **décide** (plonger tôt, tard, bluffer)
-- [ ] **7.** 🤖 Le gardien **apprend** mes habitudes
-- [ ] **8.** Le mode 2 joueurs en ligne (un tire, l'autre garde)
+Vercel n'héberge que des pages web, pas un serveur qui reste allumé en
+permanence. Pour que les deux joueurs voient la même partie, on utilise
+un **carnet de score partagé** : une petite base de données (Redis, chez
+Upstash, branchée directement sur ce projet Vercel). Le navigateur de
+chaque joueur relit ce carnet environ une fois par seconde pour voir ce
+qui a changé.
 
 ## Pour travailler dessus
 
-Ouvrir `index.html` dans un navigateur : ça suffit pour tester.
+Ouvrir `index.html` directement dans un navigateur ne suffit plus (il a
+besoin du serveur `/api/room`). Pour tester en local il faut `vercel dev`.
 Chaque `git push` remet automatiquement le jeu en ligne sur Vercel.
