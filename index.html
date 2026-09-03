@@ -178,6 +178,9 @@
           <div class="goal-box">
             <div class="goal-post-shadow"></div>
             <div class="goal-frame"></div>
+            <div class="goal-net"></div>
+            <span class="goal-corner tl"></span>
+            <span class="goal-corner tr"></span>
             <div class="reach-circle" id="reach-circle"></div>
             <div class="marker shot" id="marker-shot"></div>
             <button type="button" class="aim-area" id="aim-area" aria-label="Zone de visée dans la cage" disabled></button>
@@ -202,7 +205,35 @@
               <path d="M14 7 a6 6 0 0 1 12 0 q-1 -2.6 -6 -2.6 t-6 2.6z" fill="#3A2A1E"/>
             </svg>
           </div>
-          <div class="ball" id="ball"></div>
+          <div class="ball" id="ball">
+            <svg viewBox="0 0 100 100">
+              <defs>
+                <radialGradient id="ballShade" cx="36%" cy="30%" r="75%">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="55%" stop-color="#f1f1f1"/>
+                  <stop offset="100%" stop-color="#c7c7c7"/>
+                </radialGradient>
+              </defs>
+              <circle cx="50" cy="50" r="47" fill="url(#ballShade)"/>
+              <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(43,231,255,.55)" stroke-width="1.6"/>
+              <g fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+                <polygon points="50,36 63,46 58,61 42,61 37,46" fill="#232323"/>
+                <path d="M50,36 L50,7"/>
+                <path d="M63,46 L88,38"/>
+                <path d="M58,61 L74,82"/>
+                <path d="M42,61 L26,82"/>
+                <path d="M37,46 L12,38"/>
+              </g>
+              <g fill="#232323">
+                <polygon points="50,7 57,13 54,20 46,20 43,13"/>
+                <polygon points="88,38 93,46 87,52 80,49 81,41"/>
+                <polygon points="74,82 68,89 59,86 60,78 68,75"/>
+                <polygon points="26,82 32,89 41,86 40,78 32,75"/>
+                <polygon points="12,38 7,46 13,52 20,49 19,41"/>
+              </g>
+              <ellipse cx="38" cy="30" rx="16" ry="10" fill="#ffffff" opacity=".55"/>
+            </svg>
+          </div>
           <div class="result-banner" id="result-banner">BUT !</div>
 
           <div class="turn-overlay" id="turn-overlay" style="display:none;">
