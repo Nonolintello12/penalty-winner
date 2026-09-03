@@ -1,0 +1,8 @@
+{
+  "name": "penalty-winner",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@upstash/redis": "^1.38.3"
+  }
+}
