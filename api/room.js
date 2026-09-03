@@ -4,12 +4,10 @@
 // partie dans Upstash (une base Redis), pour que les deux joueurs -
 // chacun sur son ordinateur - voient la même partie.
 
-const { Redis } = require('@upstash/redis');
+const { getRedis } = require('../lib/redis');
+const { recordWin, TIERS } = require('../lib/ranks');
 
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL,
-  token: process.env.KV_REST_API_TOKEN,
-});
+const redis = getRedis();
 
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // pas de 0/O ni 1/I, pour éviter les confusions
 const ROOM_TTL_SECONDS = 6 * 60 * 60; // une partie oubliée disparaît après 6h
@@ -31,9 +29,10 @@ function clampPct(v) {
   return Math.max(2, Math.min(98, Number(v)));
 }
 
-function freshState(name1) {
+function freshState(name1, profileUsername1) {
   return {
     players: [name1, null],
+    profiles: [profileUsername1 || null, null], // pseudo du compte classé, si connecté
     scores: [0, 0],
     shooterIdx: 0,
     phase: 'waiting', // waiting -> shoot -> keep -> reveal -> gameover
@@ -42,6 +41,7 @@ function freshState(name1) {
     lastResult: null,
     revealUntil: null,
     winner: null,
+    lastPromotion: null, // { username, rankName, promoted } rempli si quelqu'un a gagné en étant connecté
     version: 1,
   };
 }
@@ -106,12 +106,13 @@ module.exports = async (req, res) => {
 
       if (action === 'create') {
         const name = String(body.name || 'Joueur 1').slice(0, 16);
+        const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
         let code = randomCode();
         for (let tries = 0; tries < 5; tries++) {
           if (!(await redis.get(roomKey(code)))) break;
           code = randomCode();
         }
-        const state = freshState(name);
+        const state = freshState(name, profileUsername);
         await saveState(code, state);
         return res.status(200).json({ code, role: 'p1', state: redactForRole(state, 'p1') });
       }
@@ -124,8 +125,10 @@ module.exports = async (req, res) => {
 
       if (action === 'join') {
         const name = String(body.name || 'Joueur 2').slice(0, 16);
+        const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
         if (state.players[1]) return res.status(409).json({ error: 'cette partie est déjà complète' });
         state.players[1] = name;
+        state.profiles[1] = profileUsername;
         state.phase = 'shoot';
         state.version += 1;
         await saveState(code, state);
@@ -164,7 +167,21 @@ module.exports = async (req, res) => {
         if (!isSave) state.scores[state.shooterIdx] += 1;
 
         state.lastResult = { isSave, shooterIdx: state.shooterIdx, shotPos: state.shotPos, keepPos: state.keepPos };
-        if (state.scores[state.shooterIdx] >= WIN_TARGET) state.winner = state.shooterIdx;
+        if (state.scores[state.shooterIdx] >= WIN_TARGET) {
+          state.winner = state.shooterIdx;
+          const winnerUsername = state.profiles && state.profiles[state.winner];
+          if (winnerUsername) {
+            const result = await recordWin(redis, winnerUsername);
+            if (result) {
+              const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
+              state.lastPromotion = {
+                username: winnerUsername,
+                rankName: tier.name,
+                promoted: result.promoted,
+              };
+            }
+          }
+        }
 
         state.phase = 'reveal';
         state.revealUntil = Date.now() + REVEAL_MS;

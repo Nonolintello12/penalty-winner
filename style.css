@@ -169,6 +169,33 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
 
 .error-msg{ color:var(--save-red); font-size:13px; margin-top:10px; min-height:16px; }
 
+/* ---------- Barre de profil / rang ---------- */
+.profile-bar{
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,199,44,.18);
+  border-radius:10px; padding:12px 14px; margin-bottom:18px;
+}
+.profile-bar-top{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.profile-bar-name{ font-weight:700; color:var(--chalk); font-size:14px; }
+.profile-bar-rank{ color:var(--gold); font-weight:700; font-size:12.5px; flex:1; }
+.profile-bar-logout{
+  background:transparent; border:none; color:#7C8CB4; font-size:11.5px;
+  text-decoration:underline; cursor:pointer; padding:2px 0; font-family:'Work Sans',sans-serif;
+}
+.profile-bar-progress{
+  height:8px; border-radius:5px; background:rgba(255,255,255,.08); overflow:hidden;
+}
+.profile-bar-progress-fill{
+  height:100%; width:0%; background:linear-gradient(90deg,var(--gold),var(--gold-deep));
+  border-radius:5px; transition:width .3s ease;
+}
+.profile-bar-sub{ font-size:11.5px; color:#7E8FBC; margin-top:6px; text-align:left; }
+
+.promotion-banner{
+  background:rgba(255,199,44,.12); border:1px solid rgba(255,199,44,.4);
+  border-radius:10px; padding:12px 14px; margin:0 0 22px;
+  color:var(--gold); font-weight:700; font-size:14.5px;
+}
+
 /* ---------- Waiting room ---------- */
 .waiting-card{
   background:linear-gradient(180deg,var(--night-2),var(--night-3));

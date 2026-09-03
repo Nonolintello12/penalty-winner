@@ -16,8 +16,62 @@
     <span class="line"></span><span class="label">MONDIAL 2026</span><span class="line"></span>
   </div>
 
+  <!-- PROFIL : créer un compte classé ou se connecter -->
+  <section class="screen active" id="screen-profile">
+    <div class="card-top-accent"></div>
+    <div class="setup-card">
+      <div class="badge" aria-hidden="true"></div>
+      <p class="tag">Avant de commencer</p>
+      <h1>Ton profil</h1>
+      <p class="sub">Crée un profil pour suivre ton rang, ou joue sans compte.</p>
+
+      <div class="setup-tabs">
+        <button type="button" class="tab-btn active" id="ptab-btn-new">Créer un profil</button>
+        <button type="button" class="tab-btn" id="ptab-btn-login">Se connecter</button>
+      </div>
+
+      <div class="tab-panel active" id="ptab-new">
+        <div class="field">
+          <label for="profile-new-username">Choisis un pseudo</label>
+          <input id="profile-new-username" type="text" maxlength="16" placeholder="Ton pseudo">
+        </div>
+        <p class="error-msg" id="profile-new-error"></p>
+        <button class="btn btn-block" id="btn-profile-create">Créer mon profil</button>
+      </div>
+
+      <div class="tab-panel" id="ptab-login">
+        <div class="field">
+          <label for="profile-login-username">Pseudo</label>
+          <input id="profile-login-username" type="text" maxlength="16" placeholder="Ton pseudo">
+        </div>
+        <div class="field">
+          <label for="profile-login-code">Code secret</label>
+          <input id="profile-login-code" class="code-input" type="text" maxlength="6" placeholder="CODE">
+        </div>
+        <p class="error-msg" id="profile-login-error"></p>
+        <button class="btn btn-block" id="btn-profile-login">Me connecter</button>
+      </div>
+
+      <button class="btn btn-ghost btn-block" id="btn-profile-skip" style="margin-top:10px;">Continuer sans compte</button>
+    </div>
+  </section>
+
+  <!-- Affiché juste après la création d'un profil : montre le code secret -->
+  <section class="screen" id="screen-profile-code">
+    <div class="card-top-accent"></div>
+    <div class="waiting-card">
+      <p class="room-code-label">Ton code secret</p>
+      <div class="room-code-display" id="profile-secret-display">------</div>
+      <p class="rule-line">
+        Note bien ce code quelque part (ou fais une capture d'écran) ! Il te
+        servira à retrouver ton profil et ton rang sur un autre ordinateur.
+      </p>
+      <button class="btn btn-block" id="btn-profile-code-continue">J'ai noté mon code, continuer</button>
+    </div>
+  </section>
+
   <!-- SETUP : créer ou rejoindre une partie -->
-  <section class="screen active" id="screen-setup">
+  <section class="screen" id="screen-setup">
     <div class="card-top-accent"></div>
     <div class="setup-card">
       <div class="badge" aria-hidden="true"></div>
@@ -25,13 +79,25 @@
       <h1>Face à face</h1>
       <p class="sub">Deux joueurs, deux ordinateurs. Premier à 10 buts gagne.</p>
 
+      <div class="profile-bar" id="profile-bar" style="display:none;">
+        <div class="profile-bar-top">
+          <span class="profile-bar-name" id="profile-bar-name">—</span>
+          <span class="profile-bar-rank" id="profile-bar-rank">—</span>
+          <button class="profile-bar-logout" id="btn-profile-logout" type="button">changer</button>
+        </div>
+        <div class="profile-bar-progress">
+          <div class="profile-bar-progress-fill" id="profile-bar-progress-fill"></div>
+        </div>
+        <div class="profile-bar-sub" id="profile-bar-sub">—</div>
+      </div>
+
       <div class="setup-tabs">
         <button type="button" class="tab-btn active" id="tab-btn-create">Créer une partie</button>
         <button type="button" class="tab-btn" id="tab-btn-join">Rejoindre une partie</button>
       </div>
 
       <div class="tab-panel active" id="tab-create">
-        <div class="field">
+        <div class="field" id="create-name-field">
           <label for="create-name">Ton prénom</label>
           <input id="create-name" type="text" maxlength="16" placeholder="Ton prénom">
         </div>
@@ -44,7 +110,7 @@
       </div>
 
       <div class="tab-panel" id="tab-join">
-        <div class="field">
+        <div class="field" id="join-name-field">
           <label for="join-name">Ton prénom</label>
           <input id="join-name" type="text" maxlength="16" placeholder="Ton prénom">
         </div>
@@ -159,6 +225,7 @@
         <p class="room-code-label" id="gameover-role">VAINQUEUR</p>
         <h2 class="winner-name" id="winner-name">—</h2>
         <p class="final-score" id="final-score">10 – 0</p>
+        <div class="promotion-banner" id="promotion-banner" style="display:none;"></div>
         <button class="btn" id="btn-replay">Rejouer (nouvelle partie)</button>
       </div>
     </section>

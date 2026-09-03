@@ -17,22 +17,24 @@
 
   // ---------- Récupération des éléments de la page ----------
   const screens = {
+    profile: document.getElementById('screen-profile'),
+    profileCode: document.getElementById('screen-profile-code'),
     setup: document.getElementById('screen-setup'),
     waiting: document.getElementById('screen-waiting'),
     pitch: document.getElementById('screen-pitch'),
     gameover: document.getElementById('screen-gameover'),
   };
   const gameWrap = document.getElementById('game-wrap');
+  const NO_GAME_WRAP_SCREENS = ['profile', 'profileCode', 'setup', 'waiting'];
 
   function showScreen(key) {
     Object.values(screens).forEach((s) => s.classList.remove('active'));
-    if (key === 'setup' || key === 'waiting') {
+    if (NO_GAME_WRAP_SCREENS.includes(key)) {
       gameWrap.style.display = 'none';
-      screens[key].classList.add('active');
     } else {
       gameWrap.style.display = 'block';
-      screens[key].classList.add('active');
     }
+    screens[key].classList.add('active');
   }
 
   // ---------- Onglets Créer / Rejoindre ----------
@@ -56,6 +58,141 @@
     activateTab('join');
     document.getElementById('join-code').value = urlCode.toUpperCase();
   }
+
+  // ---------- Profil joueur (pseudo + code secret, pas de mot de passe) ----------
+  let currentProfile = null; // { username, rankName, wins, winsToPromote, totalWins, maxRank }
+  let currentProfileSecret = null;
+
+  async function profileApi(action, extra) {
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...extra }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'erreur réseau');
+    return data;
+  }
+
+  function renderProfileBar() {
+    const bar = document.getElementById('profile-bar');
+    const createNameField = document.getElementById('create-name-field');
+    const joinNameField = document.getElementById('join-name-field');
+    if (!currentProfile) {
+      bar.style.display = 'none';
+      createNameField.style.display = '';
+      joinNameField.style.display = '';
+      return;
+    }
+    bar.style.display = 'block';
+    createNameField.style.display = 'none';
+    joinNameField.style.display = 'none';
+    document.getElementById('profile-bar-name').textContent = currentProfile.username;
+    document.getElementById('profile-bar-rank').textContent = currentProfile.rankName;
+    const fill = document.getElementById('profile-bar-progress-fill');
+    const sub = document.getElementById('profile-bar-sub');
+    if (currentProfile.maxRank) {
+      fill.style.width = '100%';
+      sub.textContent = 'Rang maximum atteint !';
+    } else {
+      const pct = Math.min(100, (currentProfile.wins / currentProfile.winsToPromote) * 100);
+      fill.style.width = pct + '%';
+      sub.textContent = currentProfile.wins + ' / ' + currentProfile.winsToPromote + ' victoires pour le palier suivant';
+    }
+  }
+
+  function proceedToSetup() {
+    renderProfileBar();
+    showScreen('setup');
+  }
+
+  // Onglets Créer un profil / Se connecter
+  const ptabBtnNew = document.getElementById('ptab-btn-new');
+  const ptabBtnLogin = document.getElementById('ptab-btn-login');
+  const ptabNew = document.getElementById('ptab-new');
+  const ptabLogin = document.getElementById('ptab-login');
+  function activateProfileTab(which) {
+    ptabBtnNew.classList.toggle('active', which === 'new');
+    ptabBtnLogin.classList.toggle('active', which === 'login');
+    ptabNew.classList.toggle('active', which === 'new');
+    ptabLogin.classList.toggle('active', which === 'login');
+  }
+  ptabBtnNew.addEventListener('click', () => activateProfileTab('new'));
+  ptabBtnLogin.addEventListener('click', () => activateProfileTab('login'));
+
+  document.getElementById('btn-profile-create').addEventListener('click', async () => {
+    const errorEl = document.getElementById('profile-new-error');
+    errorEl.textContent = '';
+    const username = document.getElementById('profile-new-username').value.trim();
+    if (!username) { errorEl.textContent = 'Choisis un pseudo.'; return; }
+    try {
+      const data = await profileApi('signup', { username });
+      currentProfile = data.profile;
+      currentProfileSecret = data.secretCode;
+      localStorage.setItem('pw_profile_username', data.username);
+      localStorage.setItem('pw_profile_secret', data.secretCode);
+      document.getElementById('profile-secret-display').textContent = data.secretCode;
+      showScreen('profileCode');
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  document.getElementById('btn-profile-code-continue').addEventListener('click', proceedToSetup);
+
+  document.getElementById('btn-profile-login').addEventListener('click', async () => {
+    const errorEl = document.getElementById('profile-login-error');
+    errorEl.textContent = '';
+    const username = document.getElementById('profile-login-username').value.trim();
+    const secretCode = document.getElementById('profile-login-code').value.trim().toUpperCase();
+    if (!username || !secretCode) { errorEl.textContent = 'Pseudo et code secret nécessaires.'; return; }
+    try {
+      const data = await profileApi('login', { username, secretCode });
+      currentProfile = data.profile;
+      currentProfileSecret = secretCode;
+      localStorage.setItem('pw_profile_username', data.username);
+      localStorage.setItem('pw_profile_secret', secretCode);
+      proceedToSetup();
+    } catch (e) {
+      errorEl.textContent = e.message;
+    }
+  });
+
+  document.getElementById('btn-profile-skip').addEventListener('click', () => {
+    currentProfile = null;
+    proceedToSetup();
+  });
+
+  document.getElementById('btn-profile-logout').addEventListener('click', () => {
+    localStorage.removeItem('pw_profile_username');
+    localStorage.removeItem('pw_profile_secret');
+    currentProfile = null;
+    currentProfileSecret = null;
+    activateProfileTab('new');
+    showScreen('profile');
+  });
+
+  // Reprise automatique du profil si on l'a déjà sur cet ordinateur
+  (async function tryResumeProfile() {
+    const savedUsername = localStorage.getItem('pw_profile_username');
+    const savedSecret = localStorage.getItem('pw_profile_secret');
+    if (!savedUsername || !savedSecret) return;
+    try {
+      const data = await profileApi('login', { username: savedUsername, secretCode: savedSecret });
+      currentProfile = data.profile;
+      currentProfileSecret = savedSecret;
+      // Si une partie est en cours (page rechargée en plein match), on ne
+      // touche pas à l'écran affiché — seule la reprise de partie décide.
+      if (sessionStorage.getItem('pw_code')) {
+        renderProfileBar();
+      } else {
+        proceedToSetup();
+      }
+    } catch (e) {
+      localStorage.removeItem('pw_profile_username');
+      localStorage.removeItem('pw_profile_secret');
+    }
+  })();
 
   // ---------- Appel au serveur (fonctions dans /api) ----------
   async function api(action, extra) {
@@ -82,10 +219,10 @@
 
   async function createRoom() {
     createError.textContent = '';
-    const name = document.getElementById('create-name').value.trim() || 'Joueur 1';
+    const name = currentProfile ? currentProfile.username : (document.getElementById('create-name').value.trim() || 'Joueur 1');
     btnCreate.disabled = true;
     try {
-      const data = await api('create', { name });
+      const data = await api('create', { name, profileUsername: currentProfile ? currentProfile.username : undefined });
       roomCode = data.code;
       myRole = data.role;
       sessionStorage.setItem('pw_code', roomCode);
@@ -112,7 +249,7 @@
   const joinError = document.getElementById('join-error');
   btnJoin.addEventListener('click', async () => {
     joinError.textContent = '';
-    const name = document.getElementById('join-name').value.trim() || 'Joueur 2';
+    const name = currentProfile ? currentProfile.username : (document.getElementById('join-name').value.trim() || 'Joueur 2');
     const code = document.getElementById('join-code').value.trim().toUpperCase();
     if (code.length !== 4) {
       joinError.textContent = 'Le code fait 4 lettres, vérifie avec ton ami.';
@@ -120,7 +257,7 @@
     }
     btnJoin.disabled = true;
     try {
-      const data = await api('join', { code, name });
+      const data = await api('join', { code, name, profileUsername: currentProfile ? currentProfile.username : undefined });
       roomCode = code;
       myRole = data.role;
       sessionStorage.setItem('pw_code', roomCode);
@@ -357,11 +494,28 @@
     }
   }
 
-  function showGameOver(state) {
+  async function showGameOver(state) {
     const iWon = state.winner === (myRole === 'p1' ? 0 : 1);
     document.getElementById('gameover-role').textContent = iWon ? 'VICTOIRE !' : 'DÉFAITE';
     document.getElementById('winner-name').textContent = state.players[state.winner];
     document.getElementById('final-score').textContent = state.scores[0] + ' – ' + state.scores[1];
+
+    const banner = document.getElementById('promotion-banner');
+    banner.style.display = 'none';
+
+    const promo = state.lastPromotion;
+    if (currentProfile && promo && promo.username === currentProfile.username) {
+      try {
+        const data = await profileApi('login', { username: currentProfile.username, secretCode: currentProfileSecret });
+        currentProfile = data.profile;
+        renderProfileBar();
+      } catch (e) { /* on garde l'ancien affichage si le rafraîchissement échoue */ }
+      banner.style.display = 'block';
+      banner.textContent = promo.promoted
+        ? '🎉 Tu passes ' + promo.rankName + ' !'
+        : 'Victoire enregistrée pour ton rang (' + currentProfile.rankName + ').';
+    }
+
     showScreen('gameover');
   }
 
