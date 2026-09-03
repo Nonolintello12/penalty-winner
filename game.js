@@ -214,7 +214,10 @@
   }
 
   aimArea.addEventListener('click', (evt) => {
-    if (!currentMode) return;
+    // evt.detail === 0 : clic "fantôme" (déclenché au clavier via Entrée/Espace
+    // sur un bouton qui a le focus), sans vraie position de souris. On l'ignore
+    // sinon ça vise un point au hasard.
+    if (!currentMode || evt.detail === 0) return;
     pendingPct = pctFromEvent(evt);
     btnConfirm.disabled = false;
     if (currentMode === 'shoot') {
@@ -228,10 +231,11 @@
     }
   });
 
-  btnConfirm.addEventListener('click', async () => {
-    if (!pendingPct || !currentMode) return;
+  btnConfirm.addEventListener('click', async (evt) => {
+    if (!pendingPct || !currentMode || evt.detail === 0) return;
     btnConfirm.disabled = true;
     aimArea.disabled = true;
+    btnConfirm.blur();
     try {
       const data = await api(currentMode, { pos: pendingPct });
       pendingPct = null;
