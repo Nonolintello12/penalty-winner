@@ -143,7 +143,7 @@
   let shopCatalog = null; // { balls: {...}, keepers: {...} }
   async function loadShopCatalog() {
     if (shopCatalog) return shopCatalog;
-    const res = await fetch('/api/shop');
+    const res = await fetch('/api/store');
     shopCatalog = await res.json();
     return shopCatalog;
   }
@@ -267,7 +267,7 @@
 
   async function shopAction(action, kind, itemId) {
     try {
-      const res = await fetch('/api/shop', {
+      const res = await fetch('/api/store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, kind, itemId, username: currentProfile.username, secretCode: currentProfileSecret }),
