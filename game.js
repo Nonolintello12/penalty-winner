@@ -2,9 +2,9 @@
   'use strict';
 
   // ---------- Constantes de terrain (mêmes proportions que le CSS) ----------
-  const GOAL = { left: 29, top: 9, width: 42, height: 21 };
+  const GOAL = { left: 29, top: 9, width: 42, height: 27 };
   const BALL_START = { x: 50, y: 84 };
-  const KEEPER_H_PCT = 18.6;
+  const KEEPER_H_PCT = 22;
   const KEEPER_START_PCT = { x: 50, y: 100 };
   const POLL_MS = 1000;
 
@@ -329,134 +329,60 @@
     return shopCatalog;
   }
 
-  // ---------- Motifs de ballon : un dessin qui rappelle le vrai ballon ----------
+  // ---------- Motifs de ballon : formes grandes et franches ----------
+  // Le ballon est minuscule à l'écran : les détails fins deviennent flous.
+  // On garde donc peu de formes, mais grandes, pour que ça se voit bien.
   function petalsPattern(colors, count) {
     let s = '';
     const step = 360 / count;
     for (let i = 0; i < count; i++) {
-      s += '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * step) + ' 50 50)"/>';
+      s += '<path d="M50,50 Q73,36 90,50 Q73,64 50,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * step) + ' 50 50)"/>';
     }
-    s += '<circle cx="50" cy="50" r="8.5" fill="#12203E"/>';
+    s += '<circle cx="50" cy="50" r="9" fill="#12203E"/>';
     return s;
   }
 
   // Ballon classique noir/blanc à pentagones (Telstar/Etrusco/Telstar 18) :
-  // pentagones dans colors[0], petits accents (nation) dans colors[1].
+  // pentagones dans colors[0], accents (nation) dans colors[1].
   function pentagonPattern(colors) {
     const dark = colors[0];
     const accent = colors[1];
     return (
       '<g fill="' + dark + '">' +
-      '<polygon points="50,36 63,46 58,61 42,61 37,46"/>' +
+      '<polygon points="50,32 66,44 60,63 40,63 34,44"/>' +
       '</g>' +
-      '<g fill="none" stroke="' + dark + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' +
-      '<path d="M50,36 L50,7"/><path d="M63,46 L88,38"/><path d="M58,61 L74,82"/>' +
-      '<path d="M42,61 L26,82"/><path d="M37,46 L12,38"/></g>' +
-      '<g fill="' + dark + '">' +
-      '<polygon points="50,7 57,13 54,20 46,20 43,13"/>' +
-      '<polygon points="88,38 93,46 87,52 80,49 81,41"/>' +
-      '<polygon points="74,82 68,89 59,86 60,78 68,75"/>' +
-      '<polygon points="26,82 32,89 41,86 40,78 32,75"/>' +
-      '<polygon points="12,38 7,46 13,52 20,49 19,41"/></g>' +
+      '<g fill="none" stroke="' + dark + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">' +
+      '<path d="M50,32 L50,5"/><path d="M66,44 L91,36"/><path d="M60,63 L77,85"/>' +
+      '<path d="M40,63 L23,85"/><path d="M34,44 L9,36"/></g>' +
       '<g fill="' + accent + '">' +
-      '<polygon points="50,11 53,16 47,16"/>' +
-      '<polygon points="85,41 88,46 82,45"/>' +
-      '<polygon points="69,79 72,84 66,83"/>' +
-      '<polygon points="31,79 34,84 28,83"/>' +
-      '<polygon points="15,41 18,46 12,45"/></g>'
+      '<polygon points="50,4 58,11 47,14"/>' +
+      '<polygon points="92,35 96,44 85,42"/>' +
+      '<polygon points="76,86 80,95 68,92"/>' +
+      '<polygon points="24,86 20,95 32,92"/>' +
+      '<polygon points="8,35 4,44 15,42"/></g>'
     );
   }
 
-  // Al Rihla : grande vague colorée sur fond clair.
-  function wavePattern(colors) {
-    return (
-      '<path d="M3,68 C28,34 34,88 58,54" stroke="' + colors[1] + '" stroke-width="15" fill="none" stroke-linecap="round"/>' +
-      '<path d="M46,58 C56,80 64,20 97,34" stroke="' + colors[2] + '" stroke-width="15" fill="none" stroke-linecap="round"/>'
-    );
-  }
-
-  // Brazuca : bandes épaisses qui s'entrecroisent (look "tressé").
-  function braidThickPattern(colors) {
-    const bands = [
-      ['M6,30 C35,15 45,85 88,72', colors[0]],
-      ['M94,30 C65,15 55,85 12,72', colors[1]],
-      ['M30,4 C15,35 85,65 70,96', colors[2]],
-      ['M70,4 C85,35 15,65 30,96', colors[0]],
-    ];
-    return bands.map(function (b) {
-      return '<path d="' + b[0] + '" stroke="' + b[1] + '" stroke-width="11" fill="none" stroke-linecap="round"/>';
-    }).join('');
-  }
-
-  // Jabulani : plein de petits panneaux colorés tout autour (look "confetti").
-  function confettiPattern(colors) {
-    let s = '';
-    const n = 8;
-    for (let i = 0; i < n; i++) {
-      s += '<path d="M50,50 L62,26 Q67,38 62,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * (360 / n)) + ' 50 50)"/>';
-    }
-    return s;
-  }
-
-  // Teamgeist : tourbillon noir à 4 pales au centre.
+  // Teamgeist : tourbillon central à 4 grandes pales.
   function teamgeistPattern(colors) {
     const dark = colors[0];
     return (
-      '<path d="M50,50 C35,35 35,15 50,8 C45,25 45,40 50,50 Z" fill="' + dark + '"/>' +
-      '<path d="M50,50 C65,65 65,85 50,92 C55,75 55,60 50,50 Z" fill="' + dark + '"/>' +
-      '<path d="M50,50 C65,35 85,35 92,50 C75,45 60,45 50,50 Z" fill="' + dark + '"/>' +
-      '<path d="M50,50 C35,65 15,65 8,50 C25,55 40,55 50,50 Z" fill="' + dark + '"/>' +
-      '<circle cx="50" cy="50" r="5" fill="' + colors[1] + '"/>'
-    );
-  }
-
-  // Fevernova : flammes courbes qui partent du centre.
-  function flameSwirlPattern(colors) {
-    let s = '';
-    for (let i = 0; i < 3; i++) {
-      s += '<path d="M50,50 Q60,30 58,15 Q69,32 66,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * 120) + ' 50 50)"/>';
-    }
-    s += '<circle cx="50" cy="50" r="7" fill="' + colors[1] + '"/>';
-    return s;
-  }
-
-  // Tricolore : pentagones fins + petits triangles bleu/rouge + rond central.
-  function tricolorePattern(colors) {
-    return (
-      '<g fill="none" stroke="#c7d0e0" stroke-width="1.6" stroke-linejoin="round">' +
-      '<polygon points="50,36 63,46 58,61 42,61 37,46"/>' +
-      '<path d="M50,36 L50,7"/><path d="M63,46 L88,38"/><path d="M58,61 L74,82"/>' +
-      '<path d="M42,61 L26,82"/><path d="M37,46 L12,38"/></g>' +
-      '<polygon points="50,10 54,16 46,16" fill="' + colors[0] + '"/>' +
-      '<polygon points="86,40 90,46 82,45" fill="' + colors[2] + '"/>' +
-      '<polygon points="70,80 74,86 65,85" fill="' + colors[0] + '"/>' +
-      '<polygon points="30,80 34,86 25,85" fill="' + colors[2] + '"/>' +
-      '<polygon points="14,40 18,46 10,45" fill="' + colors[0] + '"/>' +
-      '<circle cx="50" cy="50" r="9" fill="' + colors[2] + '" stroke="' + colors[0] + '" stroke-width="2"/>'
-    );
-  }
-
-  // Questra : anneaux + deux étoiles superposées (look "orbite").
-  function orbitStarPattern(colors) {
-    return (
-      '<circle cx="50" cy="50" r="32" fill="none" stroke="' + colors[0] + '" stroke-width="2"/>' +
-      '<circle cx="50" cy="50" r="22" fill="none" stroke="' + colors[2] + '" stroke-width="2"/>' +
-      '<polygon points="50,32 54,44 67,44 57,52 61,65 50,57 39,65 43,52 33,44 46,44" fill="' + colors[2] + '"/>' +
-      '<polygon points="50,50 53,58 62,58 55,64 58,73 50,68 42,73 45,64 38,58 47,58" fill="' + colors[0] + '" opacity=".85"/>'
+      '<path d="M50,50 C30,42 26,18 44,4 C40,24 40,42 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C70,58 74,82 56,96 C60,76 60,58 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C58,30 82,26 96,44 C76,40 58,40 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C42,70 18,74 4,56 C24,60 42,60 50,50 Z" fill="' + dark + '"/>' +
+      '<circle cx="50" cy="50" r="7" fill="' + colors[1] + '"/>'
     );
   }
 
   function ballPatternMarkup(pattern, colors) {
     switch (pattern) {
-      case 'petals6': return petalsPattern(colors, 6);
       case 'pentagon': return pentagonPattern(colors);
-      case 'wave': return wavePattern(colors);
-      case 'braidthick': return braidThickPattern(colors);
-      case 'confetti': return confettiPattern(colors);
       case 'teamgeist': return teamgeistPattern(colors);
-      case 'flameswirl': return flameSwirlPattern(colors);
-      case 'tricolore': return tricolorePattern(colors);
-      case 'orbitstar': return orbitStarPattern(colors);
+      case 'petals2': return petalsPattern(colors, 2);
+      case 'petals4': return petalsPattern(colors, 4);
+      case 'petals5': return petalsPattern(colors, 5);
+      case 'petals6': return petalsPattern(colors, 6);
       case 'petals3':
       default: return petalsPattern(colors, 3);
     }
@@ -469,18 +395,22 @@
       '</svg>';
   }
 
+  // ---------- Gardien : silhouette avec les bras levés, mains au-dessus de la tête ----------
   function keeperMiniSvg(jersey, gloves) {
     return '<svg viewBox="0 0 40 74">' +
-      '<path d="M6 30 C2 24 4 16 10 13" stroke="' + gloves + '" stroke-width="6" stroke-linecap="round" fill="none"/>' +
-      '<path d="M34 30 C38 24 36 16 30 13" stroke="' + gloves + '" stroke-width="6" stroke-linecap="round" fill="none"/>' +
-      '<rect x="11" y="20" width="18" height="30" rx="7" fill="' + jersey + '"/>' +
-      '<circle cx="20" cy="9" r="6.4" fill="#E8B48C"/>' +
+      '<path d="M12,29 C6,24 3,14 3,6" stroke="' + gloves + '" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+      '<path d="M28,29 C34,24 37,14 37,6" stroke="' + gloves + '" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+      '<circle cx="3" cy="5" r="4.2" fill="' + gloves + '"/>' +
+      '<circle cx="37" cy="5" r="4.2" fill="' + gloves + '"/>' +
+      '<rect x="9" y="26" width="22" height="26" rx="9" fill="' + jersey + '"/>' +
+      '<circle cx="20" cy="16" r="7" fill="#E8B48C"/>' +
       '</svg>';
   }
 
   function applyKeeperColors(jersey, gloves) {
     document.querySelectorAll('#keeper .keeper-jersey').forEach((el) => el.setAttribute('fill', jersey));
     document.querySelectorAll('#keeper .keeper-glove').forEach((el) => el.setAttribute('stroke', gloves));
+    document.querySelectorAll('#keeper .keeper-hand').forEach((el) => el.setAttribute('fill', gloves));
   }
 
   async function applyBallSkinForState(state) {

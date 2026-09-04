@@ -376,7 +376,7 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
 .corner-flag.left{ left:3%; }
 .corner-flag.right{ right:3%; }
 
-.goal-box{ position:absolute; left:29%; top:9%; width:42%; height:21%; }
+.goal-box{ position:absolute; left:29%; top:9%; width:42%; height:27%; }
 .goal-frame{
   position:absolute; inset:0;
   border:5px solid var(--chalk); border-bottom:none;
@@ -448,7 +448,7 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
 .ball svg{ width:100%; height:100%; display:block; }
 
 .keeper{
-  position:absolute; width:8.6%; height:18.6%;
+  position:absolute; width:10%; height:22%;
   left:50%; top:20%;
   transform:translate(-50%,-50%) rotate(0deg);
   z-index:2;
