@@ -171,6 +171,11 @@
     ['Bronze', 'Bronze'], ['Argent', 'Silver'], ['Platine', 'Platinum'], ['Diamant', 'Diamond'],
     ['Élite', 'Elite'], ['Champion', 'Champion'], ['Or', 'Gold'],
   ];
+  function tItemName(name) {
+    if (currentLang !== 'en') return name;
+    return name.replace(/^Ballon/, 'Ball');
+  }
+
   function tr(rankName) {
     if (currentLang !== 'en' || !rankName) return rankName;
     for (const [fr, en] of RANK_NAME_MAP) {
@@ -542,7 +547,7 @@
       item.innerHTML =
         '<div class="shop-item-ball">' + previewFn(entry) + '</div>' +
         '<div class="shop-item-info">' +
-        '<div class="shop-item-name">' + entry.name + '</div>' +
+        '<div class="shop-item-name">' + tItemName(entry.name) + '</div>' +
         '<div class="shop-item-price">' + priceLabelFn(entry) + '</div>' +
         '</div>';
       const btn = document.createElement('button');
