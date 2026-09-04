@@ -213,7 +213,6 @@
   // ---------- Écran de démarrage ----------
   document.getElementById('btn-start-enter').addEventListener('click', () => {
     document.getElementById('start-overlay').classList.add('hidden');
-    startAmbientMusic();
   });
 
   function showScreen(key) {
@@ -1084,114 +1083,6 @@
     sessionStorage.removeItem('pw_role');
     location.href = location.pathname;
   });
-
-  // ---------- Musique de stade (générée, pas de fichier audio téléchargé) ----------
-  // Un petit moteur de musique : batterie + basse + mélodie, sur 8 temps qui
-  // bouclent. Plusieurs morceaux différents, un est tiré au hasard à chaque
-  // partie de session.
-  let audioCtx = null;
-  let musicMasterGain = null;
-  let musicMuted = localStorage.getItem('pw_music_muted') === '1';
-  let musicSchedulerId = null;
-  let musicTrack = null;
-  let musicStepIndex = 0;
-  let musicNextStepTime = 0;
-
-  const NOTE_FREQ = {
-    C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.0, A3: 220.0, B3: 246.94,
-    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.0, A4: 440.0, B4: 493.88,
-    C5: 523.25, D5: 587.33, E5: 659.25,
-  };
-
-  const MUSIC_TRACKS = [
-    { // hymne entraînant, do majeur
-      tempo: 128,
-      kick: [1, 0, 1, 0, 1, 0, 1, 0],
-      bass: ['C3', null, 'C3', null, 'F3', null, 'G3', null],
-      lead: ['C4', 'E4', 'G4', 'E4', 'F4', 'A4', 'G4', 'E4'],
-    },
-    { // fanfare de victoire, sol majeur, plus rapide
-      tempo: 142,
-      kick: [1, 0, 0, 1, 0, 1, 0, 0],
-      bass: ['G3', null, 'D3', null, 'C3', null, 'D3', null],
-      lead: ['G4', 'B4', 'D5', 'B4', 'C5', 'E5', 'D5', 'B4'],
-    },
-    { // groove plus calme, fa majeur
-      tempo: 116,
-      kick: [1, 0, 0, 1, 0, 0, 1, 0],
-      bass: ['F3', null, 'F3', null, 'A3', null, 'C4', null],
-      lead: ['F4', 'A4', 'C5', 'A4', 'G4', 'A4', 'F4', 'C4'],
-    },
-  ];
-
-  function playKick(time) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(120, time);
-    osc.frequency.exponentialRampToValueAtTime(40, time + 0.15);
-    gain.gain.setValueAtTime(0.3, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
-    osc.connect(gain).connect(musicMasterGain);
-    osc.start(time);
-    osc.stop(time + 0.17);
-  }
-
-  function playNote(freq, time, dur, type, vol) {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, time);
-    gain.gain.setValueAtTime(0.0001, time);
-    gain.gain.exponentialRampToValueAtTime(vol, time + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
-    osc.connect(gain).connect(musicMasterGain);
-    osc.start(time);
-    osc.stop(time + dur + 0.02);
-  }
-
-  function musicScheduleStep(time) {
-    const i = musicStepIndex % 8;
-    if (musicTrack.kick[i]) playKick(time);
-    const bassNote = musicTrack.bass[i];
-    const stepDur = 60 / musicTrack.tempo / 2;
-    if (bassNote) playNote(NOTE_FREQ[bassNote], time, stepDur * 0.9, 'triangle', 0.16);
-    const leadNote = musicTrack.lead[i];
-    if (leadNote) playNote(NOTE_FREQ[leadNote], time, stepDur * 0.8, 'square', 0.08);
-    musicStepIndex++;
-  }
-
-  function musicSchedulerTick() {
-    const stepDur = 60 / musicTrack.tempo / 2;
-    while (musicNextStepTime < audioCtx.currentTime + 0.15) {
-      musicScheduleStep(musicNextStepTime);
-      musicNextStepTime += stepDur;
-    }
-  }
-
-  function startAmbientMusic() {
-    if (audioCtx) return; // déjà démarrée
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      musicMasterGain = audioCtx.createGain();
-      musicMasterGain.gain.value = musicMuted ? 0 : 0.5;
-      musicMasterGain.connect(audioCtx.destination);
-      musicTrack = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)];
-      musicStepIndex = 0;
-      musicNextStepTime = audioCtx.currentTime + 0.1;
-      musicSchedulerTick();
-      musicSchedulerId = setInterval(musicSchedulerTick, 50);
-    } catch (e) { /* pas grave si l'audio n'est pas dispo */ }
-  }
-
-  function setMusicMuted(muted) {
-    musicMuted = muted;
-    localStorage.setItem('pw_music_muted', muted ? '1' : '0');
-    if (musicMasterGain) musicMasterGain.gain.value = muted ? 0 : 0.5;
-    document.getElementById('hud-sound-toggle').textContent = muted ? '🔇' : '🔊';
-  }
-  document.getElementById('hud-sound-toggle').addEventListener('click', () => setMusicMuted(!musicMuted));
-  document.getElementById('hud-sound-toggle').textContent = musicMuted ? '🔇' : '🔊';
 
   // ---------- Bouton retour (écran d'attente) ----------
   document.getElementById('btn-waiting-back').addEventListener('click', () => {
