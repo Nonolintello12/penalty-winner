@@ -304,6 +304,12 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
   border-radius:8px; color:#9FB0D6; font-size:12.5px;
 }
 .waiting-status{ color:#9FB0D6; font-size:14px; display:flex; align-items:center; justify-content:center; gap:10px; }
+.waiting-qr-label{ font-size:12.5px; color:#7C8CB4; margin:18px 0 10px; }
+.waiting-qr{
+  display:inline-block; padding:10px; background:#fff; border-radius:12px;
+  box-shadow:0 6px 16px rgba(0,0,0,.3); margin-bottom:18px;
+}
+.waiting-qr img{ display:block; }
 .spinner{
   width:18px;height:18px;border-radius:50%;flex:none;
   border:3px solid rgba(255,199,44,.25); border-top-color:var(--gold);

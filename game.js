@@ -60,6 +60,7 @@
       'shop.backButton': 'Retour au jeu', 'shop.free': 'Gratuit', 'shop.styleLabel': ' · style +{n}%',
       'shop.chosen': 'Choisi', 'shop.choose': 'Choisir', 'shop.buy': 'Acheter',
       'waiting.label': 'Ton code de partie', 'waiting.copyButton': 'Copier le lien',
+      'waiting.qrLabel': 'Ou fais scanner ce code par ton ami :',
       'waiting.status': 'En attente de ton adversaire…', 'waiting.backButton': '⬅ Retour',
       'pitch.firstTo': 'Premier à', 'pitch.tenGoals': '10 buts', 'pitch.winsMatch': 'remporte le match',
       'mode.pillRanked': 'CLASSÉE', 'scoreboard.player1': 'Joueur 1', 'scoreboard.player2': 'Joueur 2',
@@ -108,6 +109,7 @@
       'shop.backButton': 'Back to the game', 'shop.free': 'Free', 'shop.styleLabel': ' · style +{n}%',
       'shop.chosen': 'Selected', 'shop.choose': 'Select', 'shop.buy': 'Buy',
       'waiting.label': 'Your match code', 'waiting.copyButton': 'Copy link',
+      'waiting.qrLabel': 'Or have your friend scan this code:',
       'waiting.status': 'Waiting for your opponent…', 'waiting.backButton': '⬅ Back',
       'pitch.firstTo': 'First to', 'pitch.tenGoals': '10 goals', 'pitch.winsMatch': 'wins the match',
       'mode.pillRanked': 'RANKED', 'scoreboard.player1': 'Player 1', 'scoreboard.player2': 'Player 2',
@@ -641,6 +643,15 @@
     return data;
   }
 
+  // ---------- QR code du lien de partie (bibliothèque chargée dans le HTML) ----------
+  function renderWaitingQrCode(link) {
+    const container = document.getElementById('waiting-qr');
+    container.innerHTML = '';
+    if (window.QRCode) {
+      new QRCode(container, { text: link, width: 176, height: 176, colorDark: '#050D1C', colorLight: '#ffffff' });
+    }
+  }
+
   // ---------- Créer une partie ----------
   const btnCreate = document.getElementById('btn-create');
   const createError = document.getElementById('create-error');
@@ -664,7 +675,9 @@
       sessionStorage.setItem('pw_code', roomCode);
       sessionStorage.setItem('pw_role', myRole);
       document.getElementById('waiting-code').textContent = roomCode;
-      document.getElementById('waiting-link').value = location.origin + location.pathname + '?code=' + roomCode;
+      const joinLink = location.origin + location.pathname + '?code=' + roomCode;
+      document.getElementById('waiting-link').value = joinLink;
+      renderWaitingQrCode(joinLink);
       showScreen('waiting');
       startPolling();
     } catch (e) {
@@ -997,6 +1010,10 @@
 
     if (state.phase === 'waiting') {
       updateScoreboard(state);
+      const joinLink = location.origin + location.pathname + '?code=' + roomCode;
+      document.getElementById('waiting-code').textContent = roomCode;
+      document.getElementById('waiting-link').value = joinLink;
+      renderWaitingQrCode(joinLink);
       showScreen('waiting');
       return;
     }

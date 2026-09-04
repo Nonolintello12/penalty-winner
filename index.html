@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -187,6 +188,8 @@
         <input type="text" id="waiting-link" readonly aria-label="Lien à partager">
         <button class="btn btn-ghost" id="btn-copy-link" data-i18n="waiting.copyButton">Copier le lien</button>
       </div>
+      <p class="waiting-qr-label" data-i18n="waiting.qrLabel">Ou fais scanner ce code par ton ami :</p>
+      <div class="waiting-qr" id="waiting-qr"></div>
       <p class="waiting-status"><span class="spinner" aria-hidden="true"></span> <span data-i18n="waiting.status">En attente de ton adversaire…</span></p>
       <button class="btn btn-ghost btn-block" id="btn-waiting-back" style="margin-top:16px;" data-i18n="waiting.backButton">⬅ Retour</button>
     </div>
