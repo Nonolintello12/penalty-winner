@@ -20,12 +20,18 @@
     profile: document.getElementById('screen-profile'),
     profileCode: document.getElementById('screen-profile-code'),
     setup: document.getElementById('screen-setup'),
+    shop: document.getElementById('screen-shop'),
     waiting: document.getElementById('screen-waiting'),
     pitch: document.getElementById('screen-pitch'),
     gameover: document.getElementById('screen-gameover'),
   };
   const gameWrap = document.getElementById('game-wrap');
-  const NO_GAME_WRAP_SCREENS = ['profile', 'profileCode', 'setup', 'waiting'];
+  const NO_GAME_WRAP_SCREENS = ['profile', 'profileCode', 'setup', 'shop', 'waiting'];
+
+  // ---------- Écran de démarrage ----------
+  document.getElementById('btn-start-enter').addEventListener('click', () => {
+    document.getElementById('start-overlay').classList.add('hidden');
+  });
 
   function showScreen(key) {
     Object.values(screens).forEach((s) => s.classList.remove('active'));
@@ -75,6 +81,7 @@
   }
 
   function renderProfileBar() {
+    updateHud();
     const bar = document.getElementById('profile-bar');
     const createNameField = document.getElementById('create-name-field');
     const joinNameField = document.getElementById('join-name-field');
@@ -93,7 +100,7 @@
     joinNameField.style.display = 'none';
     modeField.style.display = 'block';
     document.getElementById('profile-bar-name').textContent = currentProfile.username;
-    document.getElementById('profile-bar-rank').textContent = currentProfile.rankName;
+    document.getElementById('profile-bar-rank').textContent = currentProfile.rankEmoji + ' ' + currentProfile.rankName;
     const fill = document.getElementById('profile-bar-progress-fill');
     const sub = document.getElementById('profile-bar-sub');
     if (currentProfile.maxRank) {
@@ -109,6 +116,170 @@
   function proceedToSetup() {
     renderProfileBar();
     showScreen('setup');
+  }
+
+  // ---------- Bandeaux fixes en haut de l'écran (rang / diamants) ----------
+  let currentRoomMode = null; // mode de la partie en cours, pour savoir si on affiche le rang
+  function updateHud() {
+    const diamondsBadge = document.getElementById('hud-diamonds-badge');
+    const rankBadge = document.getElementById('hud-rank-badge');
+    if (!currentProfile) {
+      diamondsBadge.style.display = 'none';
+      rankBadge.style.display = 'none';
+      return;
+    }
+    diamondsBadge.style.display = 'block';
+    document.getElementById('hud-diamonds-count').textContent = currentProfile.diamonds;
+
+    if (currentRoomMode === 'ranked') {
+      rankBadge.style.display = 'block';
+      rankBadge.textContent = currentProfile.rankEmoji + ' ' + currentProfile.rankName;
+    } else {
+      rankBadge.style.display = 'none';
+    }
+  }
+
+  // ---------- Ballon et gardien : dessin selon le skin choisi ----------
+  let shopCatalog = null; // { balls: {...}, keepers: {...} }
+  async function loadShopCatalog() {
+    if (shopCatalog) return shopCatalog;
+    const res = await fetch('/api/shop');
+    shopCatalog = await res.json();
+    return shopCatalog;
+  }
+
+  function ballMiniSvg(colors) {
+    return '<svg viewBox="0 0 100 100">' +
+      '<circle cx="50" cy="50" r="47" fill="#eef1f4"/>' +
+      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[0] + '" transform="rotate(0 50 50)"/>' +
+      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[1] + '" transform="rotate(120 50 50)"/>' +
+      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[2] + '" transform="rotate(240 50 50)"/>' +
+      '<circle cx="50" cy="50" r="8.5" fill="#12203E"/>' +
+      '</svg>';
+  }
+
+  function keeperMiniSvg(jersey, gloves) {
+    return '<svg viewBox="0 0 40 74">' +
+      '<path d="M6 30 C2 24 4 16 10 13" stroke="' + gloves + '" stroke-width="6" stroke-linecap="round" fill="none"/>' +
+      '<path d="M34 30 C38 24 36 16 30 13" stroke="' + gloves + '" stroke-width="6" stroke-linecap="round" fill="none"/>' +
+      '<rect x="11" y="20" width="18" height="30" rx="7" fill="' + jersey + '"/>' +
+      '<circle cx="20" cy="9" r="6.4" fill="#E8B48C"/>' +
+      '</svg>';
+  }
+
+  function applyBallColors(colors) {
+    const petals = document.querySelectorAll('#ball .ball-petal');
+    petals.forEach((p, i) => { if (colors[i]) p.setAttribute('fill', colors[i]); });
+  }
+
+  function applyKeeperColors(jersey, gloves) {
+    document.querySelectorAll('#keeper .keeper-jersey').forEach((el) => el.setAttribute('fill', jersey));
+    document.querySelectorAll('#keeper .keeper-glove').forEach((el) => el.setAttribute('stroke', gloves));
+  }
+
+  async function applyBallSkinForState(state) {
+    const catalog = await loadShopCatalog();
+    const skinId = (state.balls && state.balls[state.shooterIdx]) || 'classique';
+    const skin = catalog.balls[skinId] || catalog.balls.classique;
+    applyBallColors(skin.colors);
+  }
+
+  async function applyKeeperSkinForState(state) {
+    const catalog = await loadShopCatalog();
+    const keeperIdx = state.shooterIdx === 0 ? 1 : 0;
+    const skinId = (state.keepers && state.keepers[keeperIdx]) || 'classique';
+    const skin = catalog.keepers[skinId] || catalog.keepers.classique;
+    applyKeeperColors(skin.jersey, skin.gloves);
+  }
+
+  // ---------- Boutique ----------
+  document.getElementById('btn-open-shop').addEventListener('click', async () => {
+    await renderShop();
+    showScreen('shop');
+  });
+  document.getElementById('btn-shop-back').addEventListener('click', () => {
+    showScreen('setup');
+  });
+
+  const shoptabBtnBalls = document.getElementById('shoptab-btn-balls');
+  const shoptabBtnKeepers = document.getElementById('shoptab-btn-keepers');
+  const shoptabBalls = document.getElementById('shoptab-balls');
+  const shoptabKeepers = document.getElementById('shoptab-keepers');
+  shoptabBtnBalls.addEventListener('click', () => activateShopTab('balls'));
+  shoptabBtnKeepers.addEventListener('click', () => activateShopTab('keepers'));
+  function activateShopTab(which) {
+    shoptabBtnBalls.classList.toggle('active', which === 'balls');
+    shoptabBtnKeepers.classList.toggle('active', which === 'keepers');
+    shoptabBalls.classList.toggle('active', which === 'balls');
+    shoptabKeepers.classList.toggle('active', which === 'keepers');
+  }
+
+  async function renderShop() {
+    if (!currentProfile) return;
+    const catalog = await loadShopCatalog();
+    document.getElementById('shop-diamonds').textContent = currentProfile.diamonds;
+
+    renderShopList(document.getElementById('shop-list-balls'), catalog.balls, 'ball',
+      currentProfile.ownedBalls, currentProfile.selectedBall,
+      (ball) => ballMiniSvg(ball.colors),
+      (ball) => (ball.price === 0 ? 'Gratuit' : '💎 ' + ball.price));
+
+    renderShopList(document.getElementById('shop-list-keepers'), catalog.keepers, 'keeper',
+      currentProfile.ownedKeepers, currentProfile.selectedKeeper,
+      (k) => keeperMiniSvg(k.jersey, k.gloves),
+      (k) => (k.price === 0 ? 'Gratuit' : '💎 ' + k.price) + ' · style +' + k.style.toFixed(1) + '%');
+  }
+
+  function renderShopList(list, catalog, kind, owned, selectedId, previewFn, priceLabelFn) {
+    list.innerHTML = '';
+    Object.keys(catalog).forEach((id) => {
+      const entry = catalog[id];
+      const isOwned = owned.includes(id);
+      const isSelected = selectedId === id;
+      const item = document.createElement('div');
+      item.className = 'shop-item' + (isSelected ? ' selected' : '');
+      item.innerHTML =
+        '<div class="shop-item-ball">' + previewFn(entry) + '</div>' +
+        '<div class="shop-item-info">' +
+        '<div class="shop-item-name">' + entry.name + '</div>' +
+        '<div class="shop-item-price">' + priceLabelFn(entry) + '</div>' +
+        '</div>';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      if (isSelected) {
+        btn.className = 'shop-item-btn selected';
+        btn.textContent = 'Choisi';
+        btn.disabled = true;
+      } else if (isOwned) {
+        btn.className = 'shop-item-btn select';
+        btn.textContent = 'Choisir';
+        btn.addEventListener('click', () => shopAction('select', kind, id));
+      } else {
+        btn.className = 'shop-item-btn buy';
+        btn.textContent = 'Acheter';
+        btn.disabled = currentProfile.diamonds < entry.price;
+        btn.addEventListener('click', () => shopAction('buy', kind, id));
+      }
+      item.appendChild(btn);
+      list.appendChild(item);
+    });
+  }
+
+  async function shopAction(action, kind, itemId) {
+    try {
+      const res = await fetch('/api/shop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, kind, itemId, username: currentProfile.username, secretCode: currentProfileSecret }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'erreur réseau');
+      currentProfile = data.profile;
+      renderProfileBar();
+      await renderShop();
+    } catch (e) {
+      alert(e.message);
+    }
   }
 
   // ---------- Mode de partie : classique ou classée ----------
@@ -189,6 +360,8 @@
     localStorage.removeItem('pw_profile_secret');
     currentProfile = null;
     currentProfileSecret = null;
+    currentRoomMode = null;
+    updateHud();
     activateProfileTab('new');
     showScreen('profile');
   });
@@ -247,9 +420,13 @@
         name,
         profileUsername: currentProfile ? currentProfile.username : undefined,
         mode: currentProfile ? selectedMode : 'classic',
+        ballSkin: currentProfile ? currentProfile.selectedBall : undefined,
+        keeperSkin: currentProfile ? currentProfile.selectedKeeper : undefined,
       });
       roomCode = data.code;
       myRole = data.role;
+      currentRoomMode = data.state.mode;
+      updateHud();
       sessionStorage.setItem('pw_code', roomCode);
       sessionStorage.setItem('pw_role', myRole);
       document.getElementById('waiting-code').textContent = roomCode;
@@ -282,9 +459,16 @@
     }
     btnJoin.disabled = true;
     try {
-      const data = await api('join', { code, name, profileUsername: currentProfile ? currentProfile.username : undefined });
+      const data = await api('join', {
+        code, name,
+        profileUsername: currentProfile ? currentProfile.username : undefined,
+        ballSkin: currentProfile ? currentProfile.selectedBall : undefined,
+        keeperSkin: currentProfile ? currentProfile.selectedKeeper : undefined,
+      });
       roomCode = code;
       myRole = data.role;
+      currentRoomMode = data.state.mode;
+      updateHud();
       sessionStorage.setItem('pw_code', roomCode);
       sessionStorage.setItem('pw_role', myRole);
       startPolling();
@@ -541,23 +725,26 @@
     const myPromo = currentProfile && promo && promo.username === currentProfile.username ? promo : null;
     const myDemo = currentProfile && demo && demo.username === currentProfile.username ? demo : null;
 
-    if (myPromo || myDemo) {
+    if (currentProfile) {
+      // Toujours rafraîchir : les diamants montent à chaque match, même sans promotion/rétrogradation.
       try {
         const data = await profileApi('login', { username: currentProfile.username, secretCode: currentProfileSecret });
         currentProfile = data.profile;
         renderProfileBar();
       } catch (e) { /* on garde l'ancien affichage si le rafraîchissement échoue */ }
 
-      banner.style.display = 'block';
-      if (myPromo) {
-        banner.textContent = myPromo.promoted
-          ? '🎉 Tu passes ' + myPromo.rankName + ' !'
-          : 'Victoire enregistrée pour ton rang (' + currentProfile.rankName + ').';
-      } else {
-        banner.classList.add('demote');
-        banner.textContent = myDemo.demoted
-          ? '📉 Tu redescends ' + myDemo.rankName + '.'
-          : 'Défaite classée : -2 victoires (' + currentProfile.rankName + ').';
+      if (myPromo || myDemo) {
+        banner.style.display = 'block';
+        if (myPromo) {
+          banner.textContent = myPromo.promoted
+            ? '🎉 Tu passes ' + myPromo.rankEmoji + ' ' + myPromo.rankName + ' !'
+            : 'Victoire enregistrée pour ton rang (' + currentProfile.rankEmoji + ' ' + currentProfile.rankName + ').';
+        } else {
+          banner.classList.add('demote');
+          banner.textContent = myDemo.demoted
+            ? '📉 Tu redescends ' + myDemo.rankEmoji + ' ' + myDemo.rankName + '.'
+            : 'Défaite classée : -2 victoires (' + currentProfile.rankEmoji + ' ' + currentProfile.rankName + ').';
+        }
       }
     }
 
@@ -568,6 +755,11 @@
   function applyState(state) {
     if (state.version === lastVersion) return;
     lastVersion = state.version;
+
+    if (state.mode && state.mode !== currentRoomMode) {
+      currentRoomMode = state.mode;
+      updateHud();
+    }
 
     if (state.phase === 'waiting') {
       updateScoreboard(state);
@@ -594,6 +786,8 @@
 
     // shoot / keep : nouveau round -> on remet le terrain à zéro visuellement
     resetPitchVisuals();
+    applyBallSkinForState(state);
+    applyKeeperSkinForState(state);
     renderPitchTurn(state);
   }
 

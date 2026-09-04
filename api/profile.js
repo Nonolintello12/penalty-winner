@@ -33,7 +33,12 @@ module.exports = async (req, res) => {
     if (action === 'signup') {
       if (await redis.get(key)) return res.status(409).json({ error: 'ce pseudo est déjà pris' });
       const secretCode = randomCode(6);
-      const profile = { username, secretCode, rankIndex: 0, wins: 0, totalWins: 0, createdAt: Date.now() };
+      const profile = {
+        username, secretCode, rankIndex: 0, wins: 0, totalWins: 0,
+        diamonds: 0, ownedBalls: ['classique'], selectedBall: 'classique',
+        ownedKeepers: ['classique'], selectedKeeper: 'classique',
+        createdAt: Date.now(),
+      };
       await redis.set(key, profile);
       return res.status(200).json({ username, secretCode, profile: publicProfile(profile) });
     }

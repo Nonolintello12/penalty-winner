@@ -6,6 +6,7 @@
 
 const { getRedis } = require('../lib/redis');
 const { recordWin, recordLoss, TIERS } = require('../lib/ranks');
+const { addDiamonds, DIAMONDS_PER_MATCH } = require('../lib/shop');
 
 const redis = getRedis();
 
@@ -29,11 +30,13 @@ function clampPct(v) {
   return Math.max(2, Math.min(98, Number(v)));
 }
 
-function freshState(name1, profileUsername1, mode) {
+function freshState(name1, profileUsername1, mode, ballSkin1, keeperSkin1) {
   return {
     mode: mode === 'ranked' ? 'ranked' : 'classic',
     players: [name1, null],
     profiles: [profileUsername1 || null, null], // pseudo du compte classé, si connecté
+    balls: [ballSkin1 || 'classique', 'classique'], // ballon choisi par chaque joueur
+    keepers: [keeperSkin1 || 'classique', 'classique'], // gardien choisi par chaque joueur
     scores: [0, 0],
     shooterIdx: 0,
     phase: 'waiting', // waiting -> shoot -> keep -> reveal -> gameover
@@ -109,12 +112,14 @@ module.exports = async (req, res) => {
       if (action === 'create') {
         const name = String(body.name || 'Joueur 1').slice(0, 16);
         const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
+        const ballSkin = body.ballSkin ? String(body.ballSkin).slice(0, 24) : null;
+        const keeperSkin = body.keeperSkin ? String(body.keeperSkin).slice(0, 24) : null;
         let code = randomCode();
         for (let tries = 0; tries < 5; tries++) {
           if (!(await redis.get(roomKey(code)))) break;
           code = randomCode();
         }
-        const state = freshState(name, profileUsername, body.mode);
+        const state = freshState(name, profileUsername, body.mode, ballSkin, keeperSkin);
         await saveState(code, state);
         return res.status(200).json({ code, role: 'p1', state: redactForRole(state, 'p1') });
       }
@@ -128,9 +133,13 @@ module.exports = async (req, res) => {
       if (action === 'join') {
         const name = String(body.name || 'Joueur 2').slice(0, 16);
         const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
+        const ballSkin = body.ballSkin ? String(body.ballSkin).slice(0, 24) : null;
+        const keeperSkin = body.keeperSkin ? String(body.keeperSkin).slice(0, 24) : null;
         if (state.players[1]) return res.status(409).json({ error: 'cette partie est déjà complète' });
         state.players[1] = name;
         state.profiles[1] = profileUsername;
+        state.balls[1] = ballSkin || 'classique';
+        state.keepers[1] = keeperSkin || 'classique';
         state.phase = 'shoot';
         state.version += 1;
         await saveState(code, state);
@@ -172,23 +181,30 @@ module.exports = async (req, res) => {
         if (state.scores[state.shooterIdx] >= WIN_TARGET) {
           state.winner = state.shooterIdx;
 
-          if (state.mode === 'ranked' && state.profiles) {
+          if (state.profiles) {
             const loserIdx = state.winner === 0 ? 1 : 0;
             const winnerUsername = state.profiles[state.winner];
             const loserUsername = state.profiles[loserIdx];
 
-            if (winnerUsername) {
-              const result = await recordWin(redis, winnerUsername);
-              if (result) {
-                const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
-                state.lastPromotion = { username: winnerUsername, rankName: tier.name, promoted: result.promoted };
+            // Diamants : 5 par match joué jusqu'au bout, gagné ou perdu,
+            // pour chaque joueur connecté à un profil.
+            if (winnerUsername) await addDiamonds(redis, winnerUsername, DIAMONDS_PER_MATCH);
+            if (loserUsername) await addDiamonds(redis, loserUsername, DIAMONDS_PER_MATCH);
+
+            if (state.mode === 'ranked') {
+              if (winnerUsername) {
+                const result = await recordWin(redis, winnerUsername);
+                if (result) {
+                  const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
+                  state.lastPromotion = { username: winnerUsername, rankName: tier.name, rankEmoji: tier.emoji, promoted: result.promoted };
+                }
               }
-            }
-            if (loserUsername) {
-              const result = await recordLoss(redis, loserUsername);
-              if (result) {
-                const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
-                state.lastDemotion = { username: loserUsername, rankName: tier.name, demoted: result.demoted };
+              if (loserUsername) {
+                const result = await recordLoss(redis, loserUsername);
+                if (result) {
+                  const tier = TIERS[result.profile.rankIndex] || TIERS[TIERS.length - 1];
+                  state.lastDemotion = { username: loserUsername, rankName: tier.name, rankEmoji: tier.emoji, demoted: result.demoted };
+                }
               }
             }
           }

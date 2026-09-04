@@ -30,6 +30,38 @@ body{
 .app{ width:100%; max-width:520px; }
 h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing:0.5px; }
 
+/* ---------- Écran de démarrage ---------- */
+.start-overlay{
+  position:fixed; inset:0; z-index:1000;
+  background:
+    radial-gradient(ellipse 700px 500px at 50% -8%, #17417F 0%, transparent 60%),
+    radial-gradient(ellipse 600px 400px at 100% 100%, #0C2A1E 0%, transparent 55%),
+    var(--night);
+  display:flex; align-items:center; justify-content:center; padding:24px 14px;
+}
+.start-overlay.hidden{ display:none; }
+.start-card{
+  width:100%; max-width:420px; text-align:center;
+  background:linear-gradient(180deg,var(--night-2),var(--night-3));
+  border:1px solid rgba(255,199,44,.16); border-radius:16px;
+  padding:44px 28px; box-shadow:0 14px 34px rgba(0,0,0,.4), 0 0 40px rgba(43,231,255,.08);
+}
+.start-card h1{ font-size:40px; margin:4px 0; }
+.start-card .tag{ font-size:12px; letter-spacing:.18em; color:var(--gold); font-weight:700; }
+.start-card .sub{ color:#9FB0D6; font-size:14px; margin:0 0 26px; }
+
+/* ---------- Badges fixes en haut de l'écran (rang / diamants) ---------- */
+.hud-rank-badge, .hud-diamonds-badge{
+  position:fixed; top:14px; z-index:900;
+  padding:6px 12px; border-radius:100px;
+  background:rgba(8,20,41,.85); border:1px solid rgba(255,199,44,.3);
+  font-family:'Work Sans',sans-serif; font-weight:700; font-size:13px;
+  color:var(--chalk); backdrop-filter:blur(4px);
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+.hud-rank-badge{ left:14px; border-color:rgba(255,199,44,.4); }
+.hud-diamonds-badge{ right:14px; border-color:rgba(43,231,255,.4); color:var(--neon); }
+
 /* ---------- Top ribbon ---------- */
 .ribbon{
   display:flex; align-items:center; justify-content:center; gap:8px;
@@ -196,6 +228,28 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
   border-radius:5px; transition:width .3s ease;
 }
 .profile-bar-sub{ font-size:11.5px; color:#7E8FBC; margin-top:6px; text-align:left; }
+.shop-open-btn{ margin-top:12px; font-size:13px; padding:9px; }
+
+/* ---------- Boutique ---------- */
+.shop-list{ display:flex; flex-direction:column; gap:10px; margin-top:18px; text-align:left; }
+.shop-item{
+  display:flex; align-items:center; gap:12px; padding:12px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:12px;
+}
+.shop-item.selected{ border-color:rgba(255,199,44,.5); background:rgba(255,199,44,.06); }
+.shop-item-ball{ width:44px; height:44px; flex:none; }
+.shop-item-ball svg{ width:100%; height:100%; display:block; }
+.shop-item-info{ flex:1; min-width:0; }
+.shop-item-name{ font-weight:700; font-size:14px; color:var(--chalk); }
+.shop-item-price{ font-size:12px; color:var(--neon); margin-top:2px; }
+.shop-item-btn{
+  flex:none; padding:8px 14px; border-radius:8px; border:none; cursor:pointer;
+  font-family:'Work Sans',sans-serif; font-weight:700; font-size:12.5px;
+}
+.shop-item-btn.buy{ background:var(--gold); color:#241900; }
+.shop-item-btn.select{ background:transparent; border:1px solid rgba(255,255,255,.2); color:var(--chalk); }
+.shop-item-btn.selected{ background:rgba(255,199,44,.18); color:var(--gold); border:1px solid rgba(255,199,44,.4); cursor:default; }
+.shop-item-btn:disabled{ opacity:.4; cursor:not-allowed; }
 
 .promotion-banner{
   background:rgba(255,199,44,.12); border:1px solid rgba(255,199,44,.4);

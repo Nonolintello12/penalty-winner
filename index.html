@@ -10,6 +10,20 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<div class="hud-rank-badge" id="hud-rank-badge" style="display:none;"></div>
+<div class="hud-diamonds-badge" id="hud-diamonds-badge" style="display:none;">💎 <span id="hud-diamonds-count">0</span></div>
+
+<div class="start-overlay" id="start-overlay">
+  <div class="start-card">
+    <div class="badge" aria-hidden="true"></div>
+    <p class="tag">MONDIAL 2026</p>
+    <h1>Tirs au but</h1>
+    <p class="sub">Prêt à défier ton ami ?</p>
+    <button class="btn btn-block" id="btn-start-enter">Commencer</button>
+  </div>
+</div>
+
 <div class="app">
 
   <div class="ribbon" aria-hidden="true">
@@ -89,6 +103,7 @@
           <div class="profile-bar-progress-fill" id="profile-bar-progress-fill"></div>
         </div>
         <div class="profile-bar-sub" id="profile-bar-sub">—</div>
+        <button class="btn btn-ghost btn-block shop-open-btn" id="btn-open-shop" type="button">🛒 Boutique de ballons</button>
       </div>
 
       <div class="setup-tabs">
@@ -129,6 +144,31 @@
         <p class="error-msg" id="join-error"></p>
         <button class="btn btn-block" id="btn-join">Rejoindre la partie</button>
       </div>
+    </div>
+  </section>
+
+  <!-- BOUTIQUE : acheter / choisir un ballon ou un gardien avec les diamants -->
+  <section class="screen" id="screen-shop">
+    <div class="card-top-accent"></div>
+    <div class="setup-card">
+      <p class="tag">Boutique</p>
+      <h1>Ta collection</h1>
+      <p class="sub">💎 <span id="shop-diamonds">0</span> diamants — gagne-en 5 à chaque match joué.</p>
+
+      <div class="setup-tabs">
+        <button type="button" class="tab-btn active" id="shoptab-btn-balls">Ballons</button>
+        <button type="button" class="tab-btn" id="shoptab-btn-keepers">Gardiens</button>
+      </div>
+
+      <div class="tab-panel active" id="shoptab-balls">
+        <div id="shop-list-balls" class="shop-list"></div>
+      </div>
+      <div class="tab-panel" id="shoptab-keepers">
+        <div id="shop-list-keepers" class="shop-list"></div>
+        <p class="mode-hint" style="margin-top:8px;">Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.</p>
+      </div>
+
+      <button class="btn btn-ghost btn-block" id="btn-shop-back" style="margin-top:14px;">Retour</button>
     </div>
   </section>
 
@@ -188,12 +228,12 @@
           <div class="keeper" id="keeper">
             <svg viewBox="0 0 40 74" fill="none">
               <ellipse cx="20" cy="70" rx="13" ry="3" fill="rgba(0,0,0,.3)"/>
-              <path d="M6 30 C2 24 4 16 10 13" stroke="#C6FF00" stroke-width="6" stroke-linecap="round"/>
-              <path d="M34 30 C38 24 36 16 30 13" stroke="#C6FF00" stroke-width="6" stroke-linecap="round"/>
+              <path class="keeper-glove" d="M6 30 C2 24 4 16 10 13" stroke="#C6FF00" stroke-width="6" stroke-linecap="round"/>
+              <path class="keeper-glove" d="M34 30 C38 24 36 16 30 13" stroke="#C6FF00" stroke-width="6" stroke-linecap="round"/>
               <circle cx="9" cy="12" r="4.4" fill="#2b2b2b"/>
               <circle cx="31" cy="12" r="4.4" fill="#2b2b2b"/>
-              <rect x="11" y="26" width="18" height="24" rx="7" fill="#C6FF00"/>
-              <path d="M11 30 L29 30" stroke="#8FCB00" stroke-width="2"/>
+              <rect class="keeper-jersey" x="11" y="26" width="18" height="24" rx="7" fill="#C6FF00"/>
+              <path class="keeper-jersey-line" d="M11 30 L29 30" stroke="#8FCB00" stroke-width="2"/>
               <text x="20" y="42" font-family="Anton, sans-serif" font-size="9" fill="#2b2b2b" text-anchor="middle">1</text>
               <rect x="12" y="48" width="7" height="12" rx="2" fill="#12203E"/>
               <rect x="21" y="48" width="7" height="12" rx="2" fill="#12203E"/>
@@ -210,28 +250,19 @@
               <defs>
                 <radialGradient id="ballShade" cx="36%" cy="30%" r="75%">
                   <stop offset="0%" stop-color="#ffffff"/>
-                  <stop offset="55%" stop-color="#f1f1f1"/>
-                  <stop offset="100%" stop-color="#c7c7c7"/>
+                  <stop offset="55%" stop-color="#f2f4f6"/>
+                  <stop offset="100%" stop-color="#c7ccd1"/>
                 </radialGradient>
               </defs>
               <circle cx="50" cy="50" r="47" fill="url(#ballShade)"/>
-              <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(43,231,255,.55)" stroke-width="1.6"/>
-              <g fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
-                <polygon points="50,36 63,46 58,61 42,61 37,46" fill="#232323"/>
-                <path d="M50,36 L50,7"/>
-                <path d="M63,46 L88,38"/>
-                <path d="M58,61 L74,82"/>
-                <path d="M42,61 L26,82"/>
-                <path d="M37,46 L12,38"/>
+              <circle cx="50" cy="50" r="47" fill="none" stroke="rgba(43,231,255,.6)" stroke-width="1.8"/>
+              <g id="ball-petals">
+                <path class="ball-petal" data-i="0" d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="#FFC72C" transform="rotate(0 50 50)"/>
+                <path class="ball-petal" data-i="1" d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="#D6001C" transform="rotate(120 50 50)"/>
+                <path class="ball-petal" data-i="2" d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="#1751B4" transform="rotate(240 50 50)"/>
               </g>
-              <g fill="#232323">
-                <polygon points="50,7 57,13 54,20 46,20 43,13"/>
-                <polygon points="88,38 93,46 87,52 80,49 81,41"/>
-                <polygon points="74,82 68,89 59,86 60,78 68,75"/>
-                <polygon points="26,82 32,89 41,86 40,78 32,75"/>
-                <polygon points="12,38 7,46 13,52 20,49 19,41"/>
-              </g>
-              <ellipse cx="38" cy="30" rx="16" ry="10" fill="#ffffff" opacity=".55"/>
+              <circle cx="50" cy="50" r="8.5" fill="#12203E"/>
+              <ellipse cx="37" cy="30" rx="15" ry="9" fill="#ffffff" opacity=".6"/>
             </svg>
           </div>
           <div class="result-banner" id="result-banner">BUT !</div>
