@@ -377,10 +377,46 @@
     );
   }
 
+  // Al Rihla : grande vague colorée qui traverse le ballon (fond clair).
+  function wavePattern(colors) {
+    return (
+      '<path d="M6,64 C30,30 40,86 70,50" stroke="' + colors[1] + '" stroke-width="16" fill="none" stroke-linecap="round"/>' +
+      '<path d="M40,60 C55,78 70,22 96,38" stroke="' + colors[2] + '" stroke-width="16" fill="none" stroke-linecap="round"/>'
+    );
+  }
+
+  // Tricolore : pentagones sur fond blanc, avec des triangles bleu/rouge
+  // qui alternent à chaque pointe (comme le vrai ballon de 1998).
+  function tricolorePattern(colors) {
+    return (
+      '<g fill="none" stroke="#cfd6e4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">' +
+      '<polygon points="50,32 66,44 60,63 40,63 34,44"/>' +
+      '<path d="M50,32 L50,5"/><path d="M66,44 L91,36"/><path d="M60,63 L77,85"/>' +
+      '<path d="M40,63 L23,85"/><path d="M34,44 L9,36"/></g>' +
+      '<polygon points="50,4 58,11 47,14" fill="' + colors[0] + '"/>' +
+      '<polygon points="92,35 96,44 85,42" fill="' + colors[2] + '"/>' +
+      '<polygon points="76,86 80,95 68,92" fill="' + colors[0] + '"/>' +
+      '<polygon points="24,86 20,95 32,92" fill="' + colors[2] + '"/>' +
+      '<polygon points="8,35 4,44 15,42" fill="' + colors[0] + '"/>' +
+      '<circle cx="50" cy="50" r="10" fill="' + colors[0] + '" stroke="' + colors[2] + '" stroke-width="3"/>'
+    );
+  }
+
+  // Questra : ballon presque blanc avec un grand anneau + une étoile bleue.
+  function starPattern(colors) {
+    return (
+      '<circle cx="50" cy="50" r="31" fill="none" stroke="' + colors[0] + '" stroke-width="3"/>' +
+      '<polygon points="50,21 59,42 82,42 63,56 70,78 50,64 30,78 37,56 18,42 41,42" fill="' + colors[0] + '"/>'
+    );
+  }
+
   function ballPatternMarkup(pattern, colors) {
     switch (pattern) {
       case 'pentagon': return pentagonPattern(colors);
       case 'teamgeist': return teamgeistPattern(colors);
+      case 'wave': return wavePattern(colors);
+      case 'tricolore': return tricolorePattern(colors);
+      case 'star': return starPattern(colors);
       case 'petals2': return petalsPattern(colors, 2);
       case 'petals4': return petalsPattern(colors, 4);
       case 'petals5': return petalsPattern(colors, 5);
@@ -1049,67 +1085,109 @@
     location.href = location.pathname;
   });
 
-  // ---------- Musique d'ambiance (générée, pas de fichier audio téléchargé) ----------
+  // ---------- Musique de stade (générée, pas de fichier audio téléchargé) ----------
+  // Un petit moteur de musique : batterie + basse + mélodie, sur 8 temps qui
+  // bouclent. Plusieurs morceaux différents, un est tiré au hasard à chaque
+  // partie de session.
   let audioCtx = null;
-  let ambientNodes = null;
+  let musicMasterGain = null;
   let musicMuted = localStorage.getItem('pw_music_muted') === '1';
+  let musicSchedulerId = null;
+  let musicTrack = null;
+  let musicStepIndex = 0;
+  let musicNextStepTime = 0;
 
-  function buildAmbientLoop(ctx) {
-    const master = ctx.createGain();
-    master.gain.value = musicMuted ? 0 : 0.05;
-    master.connect(ctx.destination);
+  const NOTE_FREQ = {
+    C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.0, A3: 220.0, B3: 246.94,
+    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.0, A4: 440.0, B4: 493.88,
+    C5: 523.25, D5: 587.33, E5: 659.25,
+  };
 
-    // Nappe douce : 3 oscillateurs légèrement désaccordés (accord simple).
-    const freqs = [98, 123.5, 146.8]; // sol / si / ré, grave et discret
-    freqs.forEach((f) => {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = f;
-      const g = ctx.createGain();
-      g.gain.value = 0.5;
-      osc.connect(g).connect(master);
-      osc.start();
-    });
+  const MUSIC_TRACKS = [
+    { // hymne entraînant, do majeur
+      tempo: 128,
+      kick: [1, 0, 1, 0, 1, 0, 1, 0],
+      bass: ['C3', null, 'C3', null, 'F3', null, 'G3', null],
+      lead: ['C4', 'E4', 'G4', 'E4', 'F4', 'A4', 'G4', 'E4'],
+    },
+    { // fanfare de victoire, sol majeur, plus rapide
+      tempo: 142,
+      kick: [1, 0, 0, 1, 0, 1, 0, 0],
+      bass: ['G3', null, 'D3', null, 'C3', null, 'D3', null],
+      lead: ['G4', 'B4', 'D5', 'B4', 'C5', 'E5', 'D5', 'B4'],
+    },
+    { // groove plus calme, fa majeur
+      tempo: 116,
+      kick: [1, 0, 0, 1, 0, 0, 1, 0],
+      bass: ['F3', null, 'F3', null, 'A3', null, 'C4', null],
+      lead: ['F4', 'A4', 'C5', 'A4', 'G4', 'A4', 'F4', 'C4'],
+    },
+  ];
 
-    // Bruit filtré très doux, façon murmure de stade.
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    noise.loop = true;
-    const noiseFilter = ctx.createBiquadFilter();
-    noiseFilter.type = 'lowpass';
-    noiseFilter.frequency.value = 500;
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.value = 0.35;
-    noise.connect(noiseFilter).connect(noiseGain).connect(master);
-    noise.start();
+  function playKick(time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120, time);
+    osc.frequency.exponentialRampToValueAtTime(40, time + 0.15);
+    gain.gain.setValueAtTime(0.3, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
+    osc.connect(gain).connect(musicMasterGain);
+    osc.start(time);
+    osc.stop(time + 0.17);
+  }
 
-    // Légère respiration du volume pour que ça ne soit pas plat.
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 0.07;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.015;
-    lfo.connect(lfoGain).connect(master.gain);
-    lfo.start();
+  function playNote(freq, time, dur, type, vol) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(vol, time + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+    osc.connect(gain).connect(musicMasterGain);
+    osc.start(time);
+    osc.stop(time + dur + 0.02);
+  }
 
-    return { master };
+  function musicScheduleStep(time) {
+    const i = musicStepIndex % 8;
+    if (musicTrack.kick[i]) playKick(time);
+    const bassNote = musicTrack.bass[i];
+    const stepDur = 60 / musicTrack.tempo / 2;
+    if (bassNote) playNote(NOTE_FREQ[bassNote], time, stepDur * 0.9, 'triangle', 0.16);
+    const leadNote = musicTrack.lead[i];
+    if (leadNote) playNote(NOTE_FREQ[leadNote], time, stepDur * 0.8, 'square', 0.08);
+    musicStepIndex++;
+  }
+
+  function musicSchedulerTick() {
+    const stepDur = 60 / musicTrack.tempo / 2;
+    while (musicNextStepTime < audioCtx.currentTime + 0.15) {
+      musicScheduleStep(musicNextStepTime);
+      musicNextStepTime += stepDur;
+    }
   }
 
   function startAmbientMusic() {
     if (audioCtx) return; // déjà démarrée
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      ambientNodes = buildAmbientLoop(audioCtx);
+      musicMasterGain = audioCtx.createGain();
+      musicMasterGain.gain.value = musicMuted ? 0 : 0.5;
+      musicMasterGain.connect(audioCtx.destination);
+      musicTrack = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)];
+      musicStepIndex = 0;
+      musicNextStepTime = audioCtx.currentTime + 0.1;
+      musicSchedulerTick();
+      musicSchedulerId = setInterval(musicSchedulerTick, 50);
     } catch (e) { /* pas grave si l'audio n'est pas dispo */ }
   }
 
   function setMusicMuted(muted) {
     musicMuted = muted;
     localStorage.setItem('pw_music_muted', muted ? '1' : '0');
-    if (ambientNodes) ambientNodes.master.gain.value = muted ? 0 : 0.05;
+    if (musicMasterGain) musicMasterGain.gain.value = muted ? 0 : 0.5;
     document.getElementById('hud-sound-toggle').textContent = muted ? '🔇' : '🔊';
   }
   document.getElementById('hud-sound-toggle').addEventListener('click', () => setMusicMuted(!musicMuted));
