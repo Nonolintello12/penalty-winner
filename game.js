@@ -148,7 +148,7 @@
     return shopCatalog;
   }
 
-  // ---------- Motifs de ballon : un dessin différent par époque ----------
+  // ---------- Motifs de ballon : un dessin qui rappelle le vrai ballon ----------
   function petalsPattern(colors, count) {
     let s = '';
     const step = 360 / count;
@@ -159,11 +159,16 @@
     return s;
   }
 
+  // Ballon classique noir/blanc à pentagones (Telstar/Etrusco/Telstar 18) :
+  // pentagones dans colors[0], petits accents (nation) dans colors[1].
   function pentagonPattern(colors) {
     const dark = colors[0];
+    const accent = colors[1];
     return (
+      '<g fill="' + dark + '">' +
+      '<polygon points="50,36 63,46 58,61 42,61 37,46"/>' +
+      '</g>' +
       '<g fill="none" stroke="' + dark + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' +
-      '<polygon points="50,36 63,46 58,61 42,61 37,46" fill="' + dark + '"/>' +
       '<path d="M50,36 L50,7"/><path d="M63,46 L88,38"/><path d="M58,61 L74,82"/>' +
       '<path d="M42,61 L26,82"/><path d="M37,46 L12,38"/></g>' +
       '<g fill="' + dark + '">' +
@@ -171,55 +176,92 @@
       '<polygon points="88,38 93,46 87,52 80,49 81,41"/>' +
       '<polygon points="74,82 68,89 59,86 60,78 68,75"/>' +
       '<polygon points="26,82 32,89 41,86 40,78 32,75"/>' +
-      '<polygon points="12,38 7,46 13,52 20,49 19,41"/></g>'
+      '<polygon points="12,38 7,46 13,52 20,49 19,41"/></g>' +
+      '<g fill="' + accent + '">' +
+      '<polygon points="50,11 53,16 47,16"/>' +
+      '<polygon points="85,41 88,46 82,45"/>' +
+      '<polygon points="69,79 72,84 66,83"/>' +
+      '<polygon points="31,79 34,84 28,83"/>' +
+      '<polygon points="15,41 18,46 12,45"/></g>'
     );
   }
 
+  // Al Rihla : grande vague colorée sur fond clair.
   function wavePattern(colors) {
     return (
-      '<path d="M5,60 C30,30 45,80 95,35" stroke="' + colors[1] + '" stroke-width="10" fill="none" stroke-linecap="round"/>' +
-      '<path d="M5,60 C30,30 45,80 95,35" stroke="' + colors[2] + '" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="1 7"/>'
+      '<path d="M3,68 C28,34 34,88 58,54" stroke="' + colors[1] + '" stroke-width="15" fill="none" stroke-linecap="round"/>' +
+      '<path d="M46,58 C56,80 64,20 97,34" stroke="' + colors[2] + '" stroke-width="15" fill="none" stroke-linecap="round"/>'
     );
   }
 
-  function braidPattern(colors) {
-    return (
-      '<path d="M10,20 C40,10 60,90 90,80" stroke="' + colors[0] + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
-      '<path d="M90,20 C60,10 40,90 10,80" stroke="' + colors[1] + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
-      '<path d="M20,8 C10,40 90,60 80,92" stroke="' + colors[2] + '" stroke-width="9" fill="none" stroke-linecap="round"/>'
-    );
+  // Brazuca : bandes épaisses qui s'entrecroisent (look "tressé").
+  function braidThickPattern(colors) {
+    const bands = [
+      ['M6,30 C35,15 45,85 88,72', colors[0]],
+      ['M94,30 C65,15 55,85 12,72', colors[1]],
+      ['M30,4 C15,35 85,65 70,96', colors[2]],
+      ['M70,4 C85,35 15,65 30,96', colors[0]],
+    ];
+    return bands.map(function (b) {
+      return '<path d="' + b[0] + '" stroke="' + b[1] + '" stroke-width="11" fill="none" stroke-linecap="round"/>';
+    }).join('');
   }
 
-  function panelPattern(colors) {
-    return (
-      '<path d="M50,3 C20,20 20,80 50,97 C35,60 35,40 50,3 Z" fill="' + colors[1] + '" opacity=".92"/>' +
-      '<path d="M50,3 C80,20 80,80 50,97 C65,60 65,40 50,3 Z" fill="' + colors[0] + '" opacity=".92"/>' +
-      '<path d="M50,3 C20,20 20,80 50,97" stroke="' + colors[2] + '" stroke-width="2" fill="none"/>' +
-      '<path d="M50,3 C80,20 80,80 50,97" stroke="' + colors[2] + '" stroke-width="2" fill="none"/>'
-    );
-  }
-
-  function flamePattern(colors) {
+  // Jabulani : plein de petits panneaux colorés tout autour (look "confetti").
+  function confettiPattern(colors) {
     let s = '';
-    for (let i = 0; i < 3; i++) {
-      s += '<path d="M50,50 L58,20 L66,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * 120) + ' 50 50)"/>';
+    const n = 8;
+    for (let i = 0; i < n; i++) {
+      s += '<path d="M50,50 L62,26 Q67,38 62,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * (360 / n)) + ' 50 50)"/>';
     }
-    s += '<circle cx="50" cy="50" r="6" fill="' + colors[0] + '"/>';
     return s;
   }
 
-  function triFlagPattern(colors) {
+  // Teamgeist : tourbillon noir à 4 pales au centre.
+  function teamgeistPattern(colors) {
+    const dark = colors[0];
     return (
-      '<path d="M50,50 Q30,20 22,50 Q30,80 50,50 Z" fill="' + colors[0] + '"/>' +
-      '<path d="M50,50 Q70,20 78,50 Q70,80 50,50 Z" fill="' + colors[2] + '"/>'
+      '<path d="M50,50 C35,35 35,15 50,8 C45,25 45,40 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C65,65 65,85 50,92 C55,75 55,60 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C65,35 85,35 92,50 C75,45 60,45 50,50 Z" fill="' + dark + '"/>' +
+      '<path d="M50,50 C35,65 15,65 8,50 C25,55 40,55 50,50 Z" fill="' + dark + '"/>' +
+      '<circle cx="50" cy="50" r="5" fill="' + colors[1] + '"/>'
     );
   }
 
-  function starPattern(colors) {
+  // Fevernova : flammes courbes qui partent du centre.
+  function flameSwirlPattern(colors) {
+    let s = '';
+    for (let i = 0; i < 3; i++) {
+      s += '<path d="M50,50 Q60,30 58,15 Q69,32 66,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * 120) + ' 50 50)"/>';
+    }
+    s += '<circle cx="50" cy="50" r="7" fill="' + colors[1] + '"/>';
+    return s;
+  }
+
+  // Tricolore : pentagones fins + petits triangles bleu/rouge + rond central.
+  function tricolorePattern(colors) {
     return (
-      '<circle cx="50" cy="50" r="30" fill="none" stroke="' + colors[0] + '" stroke-width="2"/>' +
-      '<circle cx="50" cy="50" r="20" fill="none" stroke="' + colors[2] + '" stroke-width="2"/>' +
-      '<polygon points="50,32 55,46 70,46 58,55 63,70 50,61 37,70 42,55 30,46 45,46" fill="' + colors[1] + '"/>'
+      '<g fill="none" stroke="#c7d0e0" stroke-width="1.6" stroke-linejoin="round">' +
+      '<polygon points="50,36 63,46 58,61 42,61 37,46"/>' +
+      '<path d="M50,36 L50,7"/><path d="M63,46 L88,38"/><path d="M58,61 L74,82"/>' +
+      '<path d="M42,61 L26,82"/><path d="M37,46 L12,38"/></g>' +
+      '<polygon points="50,10 54,16 46,16" fill="' + colors[0] + '"/>' +
+      '<polygon points="86,40 90,46 82,45" fill="' + colors[2] + '"/>' +
+      '<polygon points="70,80 74,86 65,85" fill="' + colors[0] + '"/>' +
+      '<polygon points="30,80 34,86 25,85" fill="' + colors[2] + '"/>' +
+      '<polygon points="14,40 18,46 10,45" fill="' + colors[0] + '"/>' +
+      '<circle cx="50" cy="50" r="9" fill="' + colors[2] + '" stroke="' + colors[0] + '" stroke-width="2"/>'
+    );
+  }
+
+  // Questra : anneaux + deux étoiles superposées (look "orbite").
+  function orbitStarPattern(colors) {
+    return (
+      '<circle cx="50" cy="50" r="32" fill="none" stroke="' + colors[0] + '" stroke-width="2"/>' +
+      '<circle cx="50" cy="50" r="22" fill="none" stroke="' + colors[2] + '" stroke-width="2"/>' +
+      '<polygon points="50,32 54,44 67,44 57,52 61,65 50,57 39,65 43,52 33,44 46,44" fill="' + colors[2] + '"/>' +
+      '<polygon points="50,50 53,58 62,58 55,64 58,73 50,68 42,73 45,64 38,58 47,58" fill="' + colors[0] + '" opacity=".85"/>'
     );
   }
 
@@ -228,11 +270,12 @@
       case 'petals6': return petalsPattern(colors, 6);
       case 'pentagon': return pentagonPattern(colors);
       case 'wave': return wavePattern(colors);
-      case 'braid': return braidPattern(colors);
-      case 'panel': return panelPattern(colors);
-      case 'flame': return flamePattern(colors);
-      case 'triflag': return triFlagPattern(colors);
-      case 'star': return starPattern(colors);
+      case 'braidthick': return braidThickPattern(colors);
+      case 'confetti': return confettiPattern(colors);
+      case 'teamgeist': return teamgeistPattern(colors);
+      case 'flameswirl': return flameSwirlPattern(colors);
+      case 'tricolore': return tricolorePattern(colors);
+      case 'orbitstar': return orbitStarPattern(colors);
       case 'petals3':
       default: return petalsPattern(colors, 3);
     }
