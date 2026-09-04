@@ -13,14 +13,19 @@
 
 <div class="hud-rank-badge" id="hud-rank-badge" style="display:none;"></div>
 <div class="hud-diamonds-badge" id="hud-diamonds-badge" style="display:none;">💎 <span id="hud-diamonds-count">0</span></div>
+<button class="hud-sound-badge" id="hud-sound-toggle" type="button" title="Son">🔊</button>
 
 <div class="start-overlay" id="start-overlay">
   <div class="start-card">
+    <div class="lang-toggle" id="lang-toggle">
+      <button type="button" class="lang-btn active" id="lang-btn-fr" data-lang="fr">FR</button>
+      <button type="button" class="lang-btn" id="lang-btn-en" data-lang="en">EN</button>
+    </div>
     <div class="badge" aria-hidden="true"></div>
-    <p class="tag">MONDIAL 2026</p>
-    <h1>Tirs au but</h1>
-    <p class="sub">Prêt à défier ton ami ?</p>
-    <button class="btn btn-block" id="btn-start-enter">Commencer</button>
+    <p class="tag" data-i18n="start.tag">MONDIAL 2026</p>
+    <h1 data-i18n="start.title">Tirs au but</h1>
+    <p class="sub" data-i18n="start.sub">Prêt à défier ton ami ?</p>
+    <button class="btn btn-block" id="btn-start-enter" data-i18n="start.button">Commencer</button>
   </div>
 </div>
 
@@ -35,38 +40,38 @@
     <div class="card-top-accent"></div>
     <div class="setup-card">
       <div class="badge" aria-hidden="true"></div>
-      <p class="tag">Avant de commencer</p>
-      <h1>Ton profil</h1>
-      <p class="sub">Crée un profil pour suivre ton rang, ou joue sans compte.</p>
+      <p class="tag" data-i18n="profile.tag">Avant de commencer</p>
+      <h1 data-i18n="profile.title">Ton profil</h1>
+      <p class="sub" data-i18n="profile.sub">Crée un profil pour suivre ton rang, ou joue sans compte.</p>
 
       <div class="setup-tabs">
-        <button type="button" class="tab-btn active" id="ptab-btn-new">Créer un profil</button>
-        <button type="button" class="tab-btn" id="ptab-btn-login">Se connecter</button>
+        <button type="button" class="tab-btn active" id="ptab-btn-new" data-i18n="profile.tabNew">Créer un profil</button>
+        <button type="button" class="tab-btn" id="ptab-btn-login" data-i18n="profile.tabLogin">Se connecter</button>
       </div>
 
       <div class="tab-panel active" id="ptab-new">
         <div class="field">
-          <label for="profile-new-username">Choisis un pseudo</label>
-          <input id="profile-new-username" type="text" maxlength="16" placeholder="Ton pseudo">
+          <label for="profile-new-username" data-i18n="profile.chooseUsername">Choisis un pseudo</label>
+          <input id="profile-new-username" type="text" maxlength="16" placeholder="Ton pseudo" data-i18n-placeholder="profile.usernamePlaceholder">
         </div>
         <p class="error-msg" id="profile-new-error"></p>
-        <button class="btn btn-block" id="btn-profile-create">Créer mon profil</button>
+        <button class="btn btn-block" id="btn-profile-create" data-i18n="profile.createButton">Créer mon profil</button>
       </div>
 
       <div class="tab-panel" id="ptab-login">
         <div class="field">
-          <label for="profile-login-username">Pseudo</label>
-          <input id="profile-login-username" type="text" maxlength="16" placeholder="Ton pseudo">
+          <label for="profile-login-username" data-i18n="profile.username">Pseudo</label>
+          <input id="profile-login-username" type="text" maxlength="16" placeholder="Ton pseudo" data-i18n-placeholder="profile.usernamePlaceholder">
         </div>
         <div class="field">
-          <label for="profile-login-code">Code secret</label>
+          <label for="profile-login-code" data-i18n="profile.secretCode">Code secret</label>
           <input id="profile-login-code" class="code-input" type="text" maxlength="6" placeholder="CODE">
         </div>
         <p class="error-msg" id="profile-login-error"></p>
-        <button class="btn btn-block" id="btn-profile-login">Me connecter</button>
+        <button class="btn btn-block" id="btn-profile-login" data-i18n="profile.loginButton">Me connecter</button>
       </div>
 
-      <button class="btn btn-ghost btn-block" id="btn-profile-skip" style="margin-top:10px;">Continuer sans compte</button>
+      <button class="btn btn-ghost btn-block" id="btn-profile-skip" style="margin-top:10px;" data-i18n="profile.skipButton">Continuer sans compte</button>
     </div>
   </section>
 
@@ -74,13 +79,13 @@
   <section class="screen" id="screen-profile-code">
     <div class="card-top-accent"></div>
     <div class="waiting-card">
-      <p class="room-code-label">Ton code secret</p>
+      <p class="room-code-label" data-i18n="profileCode.label">Ton code secret</p>
       <div class="room-code-display" id="profile-secret-display">------</div>
-      <p class="rule-line">
+      <p class="rule-line" data-i18n="profileCode.rule">
         Note bien ce code quelque part (ou fais une capture d'écran) ! Il te
         servira à retrouver ton profil et ton rang sur un autre ordinateur.
       </p>
-      <button class="btn btn-block" id="btn-profile-code-continue">J'ai noté mon code, continuer</button>
+      <button class="btn btn-block" id="btn-profile-code-continue" data-i18n="profileCode.continue">J'ai noté mon code, continuer</button>
     </div>
   </section>
 
@@ -89,60 +94,60 @@
     <div class="card-top-accent"></div>
     <div class="setup-card">
       <div class="badge" aria-hidden="true"></div>
-      <p class="tag">Séance de tirs au but</p>
-      <h1>Face à face</h1>
-      <p class="sub">Deux joueurs, deux ordinateurs. Premier à 10 buts gagne.</p>
+      <p class="tag" data-i18n="setup.tag">Séance de tirs au but</p>
+      <h1 data-i18n="setup.title">Face à face</h1>
+      <p class="sub" data-i18n="setup.sub">Deux joueurs, deux ordinateurs. Premier à 10 buts gagne.</p>
 
       <div class="profile-bar" id="profile-bar" style="display:none;">
         <div class="profile-bar-top">
           <span class="profile-bar-name" id="profile-bar-name">—</span>
           <span class="profile-bar-rank" id="profile-bar-rank">—</span>
-          <button class="profile-bar-logout" id="btn-profile-logout" type="button">changer</button>
+          <button class="profile-bar-logout" id="btn-profile-logout" type="button" data-i18n="setup.change">changer</button>
         </div>
         <div class="profile-bar-progress">
           <div class="profile-bar-progress-fill" id="profile-bar-progress-fill"></div>
         </div>
         <div class="profile-bar-sub" id="profile-bar-sub">—</div>
-        <button class="btn btn-ghost btn-block shop-open-btn" id="btn-open-shop" type="button">🛒 Boutique de ballons</button>
+        <button class="btn btn-ghost btn-block shop-open-btn" id="btn-open-shop" type="button" data-i18n="setup.shopButton">🛒 Boutique de ballons</button>
       </div>
 
       <div class="setup-tabs">
-        <button type="button" class="tab-btn active" id="tab-btn-create">Créer une partie</button>
-        <button type="button" class="tab-btn" id="tab-btn-join">Rejoindre une partie</button>
+        <button type="button" class="tab-btn active" id="tab-btn-create" data-i18n="setup.tabCreate">Créer une partie</button>
+        <button type="button" class="tab-btn" id="tab-btn-join" data-i18n="setup.tabJoin">Rejoindre une partie</button>
       </div>
 
       <div class="tab-panel active" id="tab-create">
         <div class="field" id="create-name-field">
-          <label for="create-name">Ton prénom</label>
-          <input id="create-name" type="text" maxlength="16" placeholder="Ton prénom">
+          <label for="create-name" data-i18n="setup.yourName">Ton prénom</label>
+          <input id="create-name" type="text" maxlength="16" placeholder="Ton prénom" data-i18n-placeholder="setup.yourNamePlaceholder">
         </div>
         <div class="field mode-field" id="mode-field" style="display:none;">
-          <label>Mode de partie</label>
+          <label data-i18n="setup.modeLabel">Mode de partie</label>
           <div class="mode-toggle">
-            <button type="button" class="mode-btn active" id="mode-btn-classic" data-mode="classic">Classique</button>
-            <button type="button" class="mode-btn" id="mode-btn-ranked" data-mode="ranked">Classée</button>
+            <button type="button" class="mode-btn active" id="mode-btn-classic" data-mode="classic" data-i18n="setup.modeCasual">Classique</button>
+            <button type="button" class="mode-btn" id="mode-btn-ranked" data-mode="ranked" data-i18n="setup.modeRanked">Classée</button>
           </div>
-          <p class="mode-hint" id="mode-hint">Amical : ton rang ne bouge pas.</p>
+          <p class="mode-hint" id="mode-hint" data-i18n="setup.modeHintCasual">Amical : ton rang ne bouge pas.</p>
         </div>
-        <p class="rule-line">
+        <p class="rule-line" data-i18n="setup.createRule">
           Tu vas recevoir un code à 4 lettres. Envoie-le à ton ami (par message,
           appel...) pour qu'il rejoigne ta partie depuis son ordinateur.
         </p>
         <p class="error-msg" id="create-error"></p>
-        <button class="btn btn-block" id="btn-create">Créer la partie</button>
+        <button class="btn btn-block" id="btn-create" data-i18n="setup.createButton">Créer la partie</button>
       </div>
 
       <div class="tab-panel" id="tab-join">
         <div class="field" id="join-name-field">
-          <label for="join-name">Ton prénom</label>
-          <input id="join-name" type="text" maxlength="16" placeholder="Ton prénom">
+          <label for="join-name" data-i18n="setup.yourName">Ton prénom</label>
+          <input id="join-name" type="text" maxlength="16" placeholder="Ton prénom" data-i18n-placeholder="setup.yourNamePlaceholder">
         </div>
         <div class="field">
-          <label for="join-code">Code de la partie</label>
+          <label for="join-code" data-i18n="setup.matchCode">Code de la partie</label>
           <input id="join-code" class="code-input" type="text" maxlength="4" placeholder="ABCD">
         </div>
         <p class="error-msg" id="join-error"></p>
-        <button class="btn btn-block" id="btn-join">Rejoindre la partie</button>
+        <button class="btn btn-block" id="btn-join" data-i18n="setup.joinButton">Rejoindre la partie</button>
       </div>
     </div>
   </section>
@@ -151,13 +156,13 @@
   <section class="screen" id="screen-shop">
     <div class="card-top-accent"></div>
     <div class="setup-card">
-      <p class="tag">Boutique</p>
-      <h1>Ta collection</h1>
-      <p class="sub">💎 <span id="shop-diamonds">0</span> diamants — gagne-en 5 à chaque match joué.</p>
+      <p class="tag" data-i18n="shop.tag">Boutique</p>
+      <h1 data-i18n="shop.title">Ta collection</h1>
+      <p class="sub"><span data-i18n="shop.diamondsPrefix">💎</span> <span id="shop-diamonds">0</span> <span data-i18n="shop.diamondsSuffix">diamants — gagne-en 5 à chaque match joué.</span></p>
 
       <div class="setup-tabs">
-        <button type="button" class="tab-btn active" id="shoptab-btn-balls">Ballons</button>
-        <button type="button" class="tab-btn" id="shoptab-btn-keepers">Gardiens</button>
+        <button type="button" class="tab-btn active" id="shoptab-btn-balls" data-i18n="shop.tabBalls">Ballons</button>
+        <button type="button" class="tab-btn" id="shoptab-btn-keepers" data-i18n="shop.tabKeepers">Gardiens</button>
       </div>
 
       <div class="tab-panel active" id="shoptab-balls">
@@ -165,10 +170,10 @@
       </div>
       <div class="tab-panel" id="shoptab-keepers">
         <div id="shop-list-keepers" class="shop-list"></div>
-        <p class="mode-hint" style="margin-top:8px;">Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.</p>
+        <p class="mode-hint" style="margin-top:8px;" data-i18n="shop.styleHint">Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.</p>
       </div>
 
-      <button class="btn btn-ghost btn-block" id="btn-shop-back" style="margin-top:14px;">Retour</button>
+      <button class="btn btn-ghost btn-block" id="btn-shop-back" style="margin-top:14px;" data-i18n="shop.backButton">Retour au jeu</button>
     </div>
   </section>
 
@@ -176,13 +181,14 @@
   <section class="screen" id="screen-waiting">
     <div class="card-top-accent"></div>
     <div class="waiting-card">
-      <p class="room-code-label">Ton code de partie</p>
+      <p class="room-code-label" data-i18n="waiting.label">Ton code de partie</p>
       <div class="room-code-display" id="waiting-code">----</div>
       <div class="copy-row">
         <input type="text" id="waiting-link" readonly aria-label="Lien à partager">
-        <button class="btn btn-ghost" id="btn-copy-link">Copier le lien</button>
+        <button class="btn btn-ghost" id="btn-copy-link" data-i18n="waiting.copyButton">Copier le lien</button>
       </div>
-      <p class="waiting-status"><span class="spinner" aria-hidden="true"></span> En attente de ton adversaire…</p>
+      <p class="waiting-status"><span class="spinner" aria-hidden="true"></span> <span data-i18n="waiting.status">En attente de ton adversaire…</span></p>
+      <button class="btn btn-ghost btn-block" id="btn-waiting-back" style="margin-top:16px;" data-i18n="waiting.backButton">⬅ Retour</button>
     </div>
   </section>
 
@@ -200,7 +206,7 @@
         <div class="underline"></div>
       </div>
     </div>
-    <p class="target-note">Premier à <strong>10 buts</strong> remporte le match <span class="mode-pill" id="mode-pill" style="display:none;"></span></p>
+    <p class="target-note" id="target-note"><span data-i18n="pitch.firstTo">Premier à</span> <strong data-i18n="pitch.tenGoals">10 buts</strong> <span data-i18n="pitch.winsMatch">remporte le match</span> <span class="mode-pill" id="mode-pill" style="display:none;"></span></p>
 
     <!-- SHOOT / KEEP -->
     <section class="screen" id="screen-pitch">
@@ -296,7 +302,7 @@
         <h2 class="winner-name" id="winner-name">—</h2>
         <p class="final-score" id="final-score">10 – 0</p>
         <div class="promotion-banner" id="promotion-banner" style="display:none;"></div>
-        <button class="btn" id="btn-replay">Rejouer (nouvelle partie)</button>
+        <button class="btn" id="btn-replay" data-i18n="gameover.replayButton">Rejouer (nouvelle partie)</button>
       </div>
     </section>
   </div>

@@ -28,9 +28,185 @@
   const gameWrap = document.getElementById('game-wrap');
   const NO_GAME_WRAP_SCREENS = ['profile', 'profileCode', 'setup', 'shop', 'waiting'];
 
+  // ---------- Traductions (FR / EN) ----------
+  const TRANSLATIONS = {
+    fr: {
+      'start.tag': 'MONDIAL 2026', 'start.title': 'Tirs au but', 'start.sub': 'Prêt à défier ton ami ?', 'start.button': 'Commencer',
+      'profile.tag': 'Avant de commencer', 'profile.title': 'Ton profil', 'profile.sub': 'Crée un profil pour suivre ton rang, ou joue sans compte.',
+      'profile.tabNew': 'Créer un profil', 'profile.tabLogin': 'Se connecter', 'profile.chooseUsername': 'Choisis un pseudo',
+      'profile.usernamePlaceholder': 'Ton pseudo', 'profile.username': 'Pseudo', 'profile.secretCode': 'Code secret',
+      'profile.loginButton': 'Me connecter', 'profile.createButton': 'Créer mon profil', 'profile.skipButton': 'Continuer sans compte',
+      'profile.errorChooseUsername': 'Choisis un pseudo.', 'profile.errorLoginFields': 'Pseudo et code secret nécessaires.',
+      'profileCode.label': 'Ton code secret',
+      'profileCode.rule': "Note bien ce code quelque part (ou fais une capture d'écran) ! Il te servira à retrouver ton profil et ton rang sur un autre ordinateur.",
+      'profileCode.continue': "J'ai noté mon code, continuer",
+      'setup.tag': 'Séance de tirs au but', 'setup.title': 'Face à face', 'setup.sub': 'Deux joueurs, deux ordinateurs. Premier à 10 buts gagne.',
+      'setup.change': 'changer', 'setup.shopButton': '🛒 Boutique de ballons', 'setup.tabCreate': 'Créer une partie', 'setup.tabJoin': 'Rejoindre une partie',
+      'setup.yourName': 'Ton prénom', 'setup.yourNamePlaceholder': 'Ton prénom', 'setup.modeLabel': 'Mode de partie',
+      'setup.modeCasual': 'Classique', 'setup.modeRanked': 'Classée',
+      'setup.modeHintCasual': 'Amical : ton rang ne bouge pas.',
+      'setup.modeHintRanked': 'Classée : victoire = +1 vers le palier suivant, défaite = -2.',
+      'setup.createRule': "Tu vas recevoir un code à 4 lettres. Envoie-le à ton ami (par message, appel...) pour qu'il rejoigne ta partie depuis son ordinateur.",
+      'setup.createButton': 'Créer la partie', 'setup.matchCode': 'Code de la partie', 'setup.joinButton': 'Rejoindre la partie',
+      'setup.errorCreateRoom': 'Oups, impossible de créer la partie ({error})',
+      'setup.errorJoinCode': 'Le code fait 4 lettres, vérifie avec ton ami.',
+      'setup.errorJoinRoom': 'Impossible de rejoindre : {error}',
+      'profileBar.maxRank': 'Rang maximum atteint !',
+      'profileBar.progress': '{wins} / {target} victoires pour le palier suivant',
+      'shop.tag': 'Boutique', 'shop.title': 'Ta collection', 'shop.diamondsPrefix': '💎',
+      'shop.diamondsSuffix': 'diamants — gagne-en 5 à chaque match joué.',
+      'shop.tabBalls': 'Ballons', 'shop.tabKeepers': 'Gardiens',
+      'shop.styleHint': 'Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.',
+      'shop.backButton': 'Retour au jeu', 'shop.free': 'Gratuit', 'shop.styleLabel': ' · style +{n}%',
+      'shop.chosen': 'Choisi', 'shop.choose': 'Choisir', 'shop.buy': 'Acheter',
+      'waiting.label': 'Ton code de partie', 'waiting.copyButton': 'Copier le lien',
+      'waiting.status': 'En attente de ton adversaire…', 'waiting.backButton': '⬅ Retour',
+      'pitch.firstTo': 'Premier à', 'pitch.tenGoals': '10 buts', 'pitch.winsMatch': 'remporte le match',
+      'mode.pillRanked': 'CLASSÉE', 'scoreboard.player1': 'Joueur 1', 'scoreboard.player2': 'Joueur 2',
+      'pitch.hintAimShoot': 'Clique dans la cage pour viser ton tir', 'pitch.confirmShoot': 'Valider le tir',
+      'pitch.hintAimKeep': 'Clique où le gardien doit plonger', 'pitch.confirmKeep': 'Valider le plongeon',
+      'pitch.turnTitleShoot': 'AU TIR', 'pitch.waitingShootText': '{name} vise… attends ton tour.',
+      'pitch.hintWaitingShoot': "L'adversaire vise son tir",
+      'pitch.turnTitleKeep': 'DANS LES CAGES', 'pitch.waitingKeepText': '{name} choisit où plonger.',
+      'pitch.hintWaitingKeep': 'Le gardien réfléchit à son plongeon',
+      'pitch.resultSave': 'ARRÊT !', 'pitch.resultGoal': 'BUT !',
+      'pitch.hintResultSave': 'Le gardien a plongé au bon endroit', 'pitch.hintResultGoal': 'Le tireur a trompé le gardien',
+      'pitch.errorPrefix': 'Erreur : {error}',
+      'gameover.victory': 'VICTOIRE !', 'gameover.defeat': 'DÉFAITE', 'gameover.replayButton': 'Rejouer (nouvelle partie)',
+      'gameover.promotedBanner': '🎉 Tu passes {emoji} {name} !',
+      'gameover.winRecordedBanner': 'Victoire enregistrée pour ton rang ({emoji} {name}).',
+      'gameover.demotedBanner': '📉 Tu redescends {emoji} {name}.',
+      'gameover.lossRecordedBanner': 'Défaite classée : -2 victoires ({emoji} {name}).',
+    },
+    en: {
+      'start.tag': 'WORLD CUP 2026', 'start.title': 'Penalty Shootout', 'start.sub': 'Ready to challenge your friend?', 'start.button': 'Start',
+      'profile.tag': 'Before you start', 'profile.title': 'Your profile', 'profile.sub': 'Create a profile to track your rank, or play without an account.',
+      'profile.tabNew': 'Create a profile', 'profile.tabLogin': 'Log in', 'profile.chooseUsername': 'Choose a username',
+      'profile.usernamePlaceholder': 'Your username', 'profile.username': 'Username', 'profile.secretCode': 'Secret code',
+      'profile.loginButton': 'Log in', 'profile.createButton': 'Create my profile', 'profile.skipButton': 'Continue without an account',
+      'profile.errorChooseUsername': 'Choose a username.', 'profile.errorLoginFields': 'Username and secret code required.',
+      'profileCode.label': 'Your secret code',
+      'profileCode.rule': "Write this code down somewhere (or take a screenshot)! You'll need it to find your profile and rank on another computer.",
+      'profileCode.continue': "I've saved my code, continue",
+      'setup.tag': 'Penalty shootout session', 'setup.title': 'Head to head', 'setup.sub': 'Two players, two computers. First to 10 goals wins.',
+      'setup.change': 'change', 'setup.shopButton': '🛒 Ball shop', 'setup.tabCreate': 'Create a match', 'setup.tabJoin': 'Join a match',
+      'setup.yourName': 'Your name', 'setup.yourNamePlaceholder': 'Your name', 'setup.modeLabel': 'Match mode',
+      'setup.modeCasual': 'Casual', 'setup.modeRanked': 'Ranked',
+      'setup.modeHintCasual': "Friendly: your rank doesn't move.",
+      'setup.modeHintRanked': 'Ranked: win = +1 toward the next tier, loss = -2.',
+      'setup.createRule': "You'll get a 4-letter code. Send it to your friend (by text, call...) so they can join your match from their computer.",
+      'setup.createButton': 'Create the match', 'setup.matchCode': 'Match code', 'setup.joinButton': 'Join the match',
+      'setup.errorCreateRoom': "Oops, couldn't create the match ({error})",
+      'setup.errorJoinCode': 'The code is 4 letters, check with your friend.',
+      'setup.errorJoinRoom': "Couldn't join: {error}",
+      'profileBar.maxRank': 'Maximum rank reached!',
+      'profileBar.progress': '{wins} / {target} wins for the next tier',
+      'shop.tag': 'Shop', 'shop.title': 'Your collection', 'shop.diamondsPrefix': '💎',
+      'shop.diamondsSuffix': 'diamonds — earn 5 per match played.',
+      'shop.tabBalls': 'Balls', 'shop.tabKeepers': 'Goalkeepers',
+      'shop.styleHint': '"Style" is just cosmetic: it changes nothing about saves or shots.',
+      'shop.backButton': 'Back to the game', 'shop.free': 'Free', 'shop.styleLabel': ' · style +{n}%',
+      'shop.chosen': 'Selected', 'shop.choose': 'Select', 'shop.buy': 'Buy',
+      'waiting.label': 'Your match code', 'waiting.copyButton': 'Copy link',
+      'waiting.status': 'Waiting for your opponent…', 'waiting.backButton': '⬅ Back',
+      'pitch.firstTo': 'First to', 'pitch.tenGoals': '10 goals', 'pitch.winsMatch': 'wins the match',
+      'mode.pillRanked': 'RANKED', 'scoreboard.player1': 'Player 1', 'scoreboard.player2': 'Player 2',
+      'pitch.hintAimShoot': 'Click in the goal to aim your shot', 'pitch.confirmShoot': 'Confirm shot',
+      'pitch.hintAimKeep': 'Click where the keeper should dive', 'pitch.confirmKeep': 'Confirm dive',
+      'pitch.turnTitleShoot': 'SHOOTING', 'pitch.waitingShootText': '{name} is aiming… wait for your turn.',
+      'pitch.hintWaitingShoot': 'Your opponent is aiming their shot',
+      'pitch.turnTitleKeep': 'IN GOAL', 'pitch.waitingKeepText': '{name} is choosing where to dive.',
+      'pitch.hintWaitingKeep': 'The keeper is thinking about their dive',
+      'pitch.resultSave': 'SAVE!', 'pitch.resultGoal': 'GOAL!',
+      'pitch.hintResultSave': 'The keeper dove the right way', 'pitch.hintResultGoal': 'The shooter fooled the keeper',
+      'pitch.errorPrefix': 'Error: {error}',
+      'gameover.victory': 'VICTORY!', 'gameover.defeat': 'DEFEAT', 'gameover.replayButton': 'Play again (new match)',
+      'gameover.promotedBanner': '🎉 You reach {emoji} {name}!',
+      'gameover.winRecordedBanner': 'Win recorded for your rank ({emoji} {name}).',
+      'gameover.demotedBanner': '📉 You drop to {emoji} {name}.',
+      'gameover.lossRecordedBanner': 'Ranked loss: -2 wins ({emoji} {name}).',
+    },
+  };
+
+  const SERVER_ERROR_TRANSLATIONS = {
+    'ce pseudo est déjà pris': 'This username is already taken',
+    'pseudo ou code secret incorrect': 'Incorrect username or secret code',
+    'pseudo manquant': 'Missing username',
+    'partie introuvable': 'Match not found',
+    'cette partie est déjà complète': 'This match is already full',
+    "ce n'est pas la phase de tir": "It's not the shooting phase",
+    "ce n'est pas ton tour de tirer": "It's not your turn to shoot",
+    "ce n'est pas la phase de plongeon": "It's not the diving phase",
+    "ce n'est pas ton tour de plonger": "It's not your turn to dive",
+    'position invalide': 'Invalid position',
+    'code manquant': 'Missing code',
+    'action inconnue': 'Unknown action',
+    'méthode non supportée': 'Method not supported',
+    'erreur serveur': 'Server error',
+    'objet inconnu': 'Unknown item',
+    'profil introuvable': 'Profile not found',
+    'déjà possédé': 'Already owned',
+    'pas assez de diamants': 'Not enough diamonds',
+    "cet objet n'est pas possédé": "You don't own this item",
+    'erreur réseau': 'Network error',
+  };
+
+  let currentLang = localStorage.getItem('pw_lang') || 'fr';
+
+  function t(key, vars) {
+    let str = (TRANSLATIONS[currentLang] && TRANSLATIONS[currentLang][key]) || TRANSLATIONS.fr[key] || key;
+    if (vars) {
+      Object.keys(vars).forEach((k) => { str = str.replace('{' + k + '}', vars[k]); });
+    }
+    return str;
+  }
+
+  function te(serverMessage) {
+    if (currentLang === 'fr') return serverMessage;
+    return SERVER_ERROR_TRANSLATIONS[serverMessage] || serverMessage;
+  }
+
+  const RANK_NAME_MAP = [
+    ['Non classé', 'Unranked'], ['Unreal Legend', 'Unreal Legend'], ['Unreal', 'Unreal'],
+    ['Bronze', 'Bronze'], ['Argent', 'Silver'], ['Platine', 'Platinum'], ['Diamant', 'Diamond'],
+    ['Élite', 'Elite'], ['Champion', 'Champion'], ['Or', 'Gold'],
+  ];
+  function tr(rankName) {
+    if (currentLang !== 'en' || !rankName) return rankName;
+    for (const [fr, en] of RANK_NAME_MAP) {
+      if (rankName === fr) return en;
+      if (rankName.indexOf(fr + ' ') === 0) return en + rankName.slice(fr.length);
+    }
+    return rankName;
+  }
+
+  function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      el.textContent = t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+      el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder')));
+    });
+    document.documentElement.lang = currentLang;
+    // Re-rendu des morceaux dynamiques déjà affichés (pas gérés par data-i18n)
+    renderProfileBar();
+    if (screens.shop.classList.contains('active')) renderShop();
+  }
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('pw_lang', lang);
+    document.getElementById('lang-btn-fr').classList.toggle('active', lang === 'fr');
+    document.getElementById('lang-btn-en').classList.toggle('active', lang === 'en');
+    applyTranslations();
+  }
+  document.getElementById('lang-btn-fr').addEventListener('click', () => setLanguage('fr'));
+  document.getElementById('lang-btn-en').addEventListener('click', () => setLanguage('en'));
+
   // ---------- Écran de démarrage ----------
   document.getElementById('btn-start-enter').addEventListener('click', () => {
     document.getElementById('start-overlay').classList.add('hidden');
+    startAmbientMusic();
   });
 
   function showScreen(key) {
@@ -100,16 +276,16 @@
     joinNameField.style.display = 'none';
     modeField.style.display = 'block';
     document.getElementById('profile-bar-name').textContent = currentProfile.username;
-    document.getElementById('profile-bar-rank').textContent = currentProfile.rankEmoji + ' ' + currentProfile.rankName;
+    document.getElementById('profile-bar-rank').textContent = currentProfile.rankEmoji + ' ' + tr(currentProfile.rankName);
     const fill = document.getElementById('profile-bar-progress-fill');
     const sub = document.getElementById('profile-bar-sub');
     if (currentProfile.maxRank) {
       fill.style.width = '100%';
-      sub.textContent = 'Rang maximum atteint !';
+      sub.textContent = t('profileBar.maxRank');
     } else {
       const pct = Math.min(100, (currentProfile.wins / currentProfile.winsToPromote) * 100);
       fill.style.width = pct + '%';
-      sub.textContent = currentProfile.wins + ' / ' + currentProfile.winsToPromote + ' victoires pour le palier suivant';
+      sub.textContent = t('profileBar.progress', { wins: currentProfile.wins, target: currentProfile.winsToPromote });
     }
   }
 
@@ -133,7 +309,7 @@
 
     if (currentRoomMode === 'ranked') {
       rankBadge.style.display = 'block';
-      rankBadge.textContent = currentProfile.rankEmoji + ' ' + currentProfile.rankName;
+      rankBadge.textContent = currentProfile.rankEmoji + ' ' + tr(currentProfile.rankName);
     } else {
       rankBadge.style.display = 'none';
     }
@@ -347,12 +523,12 @@
     renderShopList(document.getElementById('shop-list-balls'), catalog.balls, 'ball',
       currentProfile.ownedBalls, currentProfile.selectedBall,
       (ball) => ballMiniSvg(ball),
-      (ball) => (ball.price === 0 ? 'Gratuit' : '💎 ' + ball.price));
+      (ball) => (ball.price === 0 ? t('shop.free') : '💎 ' + ball.price));
 
     renderShopList(document.getElementById('shop-list-keepers'), catalog.keepers, 'keeper',
       currentProfile.ownedKeepers, currentProfile.selectedKeeper,
       (k) => keeperMiniSvg(k.jersey, k.gloves),
-      (k) => (k.price === 0 ? 'Gratuit' : '💎 ' + k.price) + ' · style +' + k.style.toFixed(1) + '%');
+      (k) => (k.price === 0 ? t('shop.free') : '💎 ' + k.price) + t('shop.styleLabel', { n: k.style.toFixed(1) }));
   }
 
   function renderShopList(list, catalog, kind, owned, selectedId, previewFn, priceLabelFn) {
@@ -373,15 +549,15 @@
       btn.type = 'button';
       if (isSelected) {
         btn.className = 'shop-item-btn selected';
-        btn.textContent = 'Choisi';
+        btn.textContent = t('shop.chosen');
         btn.disabled = true;
       } else if (isOwned) {
         btn.className = 'shop-item-btn select';
-        btn.textContent = 'Choisir';
+        btn.textContent = t('shop.choose');
         btn.addEventListener('click', () => shopAction('select', kind, id));
       } else {
         btn.className = 'shop-item-btn buy';
-        btn.textContent = 'Acheter';
+        btn.textContent = t('shop.buy');
         btn.disabled = currentProfile.diamonds < entry.price;
         btn.addEventListener('click', () => shopAction('buy', kind, id));
       }
@@ -403,7 +579,7 @@
       renderProfileBar();
       await renderShop();
     } catch (e) {
-      alert(e.message);
+      alert(te(e.message));
     }
   }
 
@@ -416,9 +592,7 @@
     selectedMode = mode;
     modeBtnClassic.classList.toggle('active', mode === 'classic');
     modeBtnRanked.classList.toggle('active', mode === 'ranked');
-    modeHint.textContent = mode === 'ranked'
-      ? 'Classée : victoire = +1 vers le palier suivant, défaite = -2.'
-      : 'Amical : ton rang ne bouge pas.';
+    modeHint.textContent = mode === 'ranked' ? t('setup.modeHintRanked') : t('setup.modeHintCasual');
   }
   modeBtnClassic.addEventListener('click', () => setModeButtons('classic'));
   modeBtnRanked.addEventListener('click', () => setModeButtons('ranked'));
@@ -441,7 +615,7 @@
     const errorEl = document.getElementById('profile-new-error');
     errorEl.textContent = '';
     const username = document.getElementById('profile-new-username').value.trim();
-    if (!username) { errorEl.textContent = 'Choisis un pseudo.'; return; }
+    if (!username) { errorEl.textContent = t('profile.errorChooseUsername'); return; }
     try {
       const data = await profileApi('signup', { username });
       currentProfile = data.profile;
@@ -451,7 +625,7 @@
       document.getElementById('profile-secret-display').textContent = data.secretCode;
       showScreen('profileCode');
     } catch (e) {
-      errorEl.textContent = e.message;
+      errorEl.textContent = te(e.message);
     }
   });
 
@@ -462,7 +636,7 @@
     errorEl.textContent = '';
     const username = document.getElementById('profile-login-username').value.trim();
     const secretCode = document.getElementById('profile-login-code').value.trim().toUpperCase();
-    if (!username || !secretCode) { errorEl.textContent = 'Pseudo et code secret nécessaires.'; return; }
+    if (!username || !secretCode) { errorEl.textContent = t('profile.errorLoginFields'); return; }
     try {
       const data = await profileApi('login', { username, secretCode });
       currentProfile = data.profile;
@@ -471,7 +645,7 @@
       localStorage.setItem('pw_profile_secret', secretCode);
       proceedToSetup();
     } catch (e) {
-      errorEl.textContent = e.message;
+      errorEl.textContent = te(e.message);
     }
   });
 
@@ -538,7 +712,7 @@
 
   async function createRoom() {
     createError.textContent = '';
-    const name = currentProfile ? currentProfile.username : (document.getElementById('create-name').value.trim() || 'Joueur 1');
+    const name = currentProfile ? currentProfile.username : (document.getElementById('create-name').value.trim() || t('scoreboard.player1'));
     btnCreate.disabled = true;
     try {
       const data = await api('create', {
@@ -559,7 +733,7 @@
       showScreen('waiting');
       startPolling();
     } catch (e) {
-      createError.textContent = "Oups, impossible de créer la partie (" + e.message + ")";
+      createError.textContent = t('setup.errorCreateRoom', { error: te(e.message) });
     }
     btnCreate.disabled = false;
   }
@@ -576,10 +750,10 @@
   const joinError = document.getElementById('join-error');
   btnJoin.addEventListener('click', async () => {
     joinError.textContent = '';
-    const name = currentProfile ? currentProfile.username : (document.getElementById('join-name').value.trim() || 'Joueur 2');
+    const name = currentProfile ? currentProfile.username : (document.getElementById('join-name').value.trim() || t('scoreboard.player2'));
     const code = document.getElementById('join-code').value.trim().toUpperCase();
     if (code.length !== 4) {
-      joinError.textContent = 'Le code fait 4 lettres, vérifie avec ton ami.';
+      joinError.textContent = t('setup.errorJoinCode');
       return;
     }
     btnJoin.disabled = true;
@@ -598,7 +772,7 @@
       sessionStorage.setItem('pw_role', myRole);
       startPolling();
     } catch (e) {
-      joinError.textContent = 'Impossible de rejoindre : ' + e.message;
+      joinError.textContent = t('setup.errorJoinRoom', { error: te(e.message) });
     }
     btnJoin.disabled = false;
   });
@@ -712,14 +886,14 @@
       pendingPct = null;
       applyState(data.state);
     } catch (e) {
-      pitchHint.textContent = 'Erreur : ' + e.message;
+      pitchHint.textContent = t('pitch.errorPrefix', { error: te(e.message) });
       aimArea.disabled = false;
     }
   });
 
   function updateScoreboard(state) {
-    document.getElementById('score-p1-name').textContent = state.players[0] || 'Joueur 1';
-    document.getElementById('score-p2-name').textContent = state.players[1] || 'Joueur 2';
+    document.getElementById('score-p1-name').textContent = state.players[0] || t('scoreboard.player1');
+    document.getElementById('score-p2-name').textContent = state.players[1] || t('scoreboard.player2');
     document.getElementById('score-p1-num').textContent = state.scores[0];
     document.getElementById('score-p2-num').textContent = state.scores[1];
     document.getElementById('score-p1').classList.toggle('active', state.shooterIdx === 0);
@@ -727,7 +901,7 @@
     const pill = document.getElementById('mode-pill');
     if (state.mode === 'ranked') {
       pill.style.display = 'inline-block';
-      pill.textContent = 'CLASSÉE';
+      pill.textContent = t('mode.pillRanked');
     } else {
       pill.style.display = 'none';
     }
@@ -784,11 +958,11 @@
     });
 
     setTimeout(() => {
-      resultBanner.textContent = r.isSave ? 'ARRÊT !' : 'BUT !';
+      resultBanner.textContent = r.isSave ? t('pitch.resultSave') : t('pitch.resultGoal');
       resultBanner.classList.add('show', r.isSave ? 'save' : 'goal');
       if (!r.isSave) spawnConfetti();
       updateScoreboard(state);
-      pitchHint.textContent = r.isSave ? 'Le gardien a plongé au bon endroit' : 'Le tireur a trompé le gardien';
+      pitchHint.textContent = r.isSave ? t('pitch.hintResultSave') : t('pitch.hintResultGoal');
     }, 560);
   }
 
@@ -807,15 +981,15 @@
       currentMode = 'shoot';
       aimArea.disabled = false;
       turnOverlay.style.display = 'none';
-      pitchHint.textContent = 'Clique dans la cage pour viser ton tir';
-      btnConfirm.textContent = 'Valider le tir';
+      pitchHint.textContent = t('pitch.hintAimShoot');
+      btnConfirm.textContent = t('pitch.confirmShoot');
       btnConfirm.disabled = !pendingPct;
     } else if (iAmKeeping) {
       currentMode = 'keep';
       aimArea.disabled = false;
       turnOverlay.style.display = 'none';
-      pitchHint.textContent = 'Clique où le gardien doit plonger';
-      btnConfirm.textContent = 'Valider le plongeon';
+      pitchHint.textContent = t('pitch.hintAimKeep');
+      btnConfirm.textContent = t('pitch.confirmKeep');
       btnConfirm.disabled = !pendingPct;
     } else {
       currentMode = null;
@@ -824,20 +998,20 @@
       pendingPct = null;
       turnOverlay.style.display = 'flex';
       if (state.phase === 'shoot') {
-        turnOverlayTitle.textContent = 'AU TIR';
-        turnOverlayText.textContent = shooterName + ' vise… attends ton tour.';
-        pitchHint.textContent = "L'adversaire vise son tir";
+        turnOverlayTitle.textContent = t('pitch.turnTitleShoot');
+        turnOverlayText.textContent = t('pitch.waitingShootText', { name: shooterName });
+        pitchHint.textContent = t('pitch.hintWaitingShoot');
       } else {
-        turnOverlayTitle.textContent = 'DANS LES CAGES';
-        turnOverlayText.textContent = keeperName + ' choisit où plonger.';
-        pitchHint.textContent = 'Le gardien réfléchit à son plongeon';
+        turnOverlayTitle.textContent = t('pitch.turnTitleKeep');
+        turnOverlayText.textContent = t('pitch.waitingKeepText', { name: keeperName });
+        pitchHint.textContent = t('pitch.hintWaitingKeep');
       }
     }
   }
 
   async function showGameOver(state) {
     const iWon = state.winner === (myRole === 'p1' ? 0 : 1);
-    document.getElementById('gameover-role').textContent = iWon ? 'VICTOIRE !' : 'DÉFAITE';
+    document.getElementById('gameover-role').textContent = iWon ? t('gameover.victory') : t('gameover.defeat');
     document.getElementById('winner-name').textContent = state.players[state.winner];
     document.getElementById('final-score').textContent = state.scores[0] + ' – ' + state.scores[1];
 
@@ -862,13 +1036,13 @@
         banner.style.display = 'block';
         if (myPromo) {
           banner.textContent = myPromo.promoted
-            ? '🎉 Tu passes ' + myPromo.rankEmoji + ' ' + myPromo.rankName + ' !'
-            : 'Victoire enregistrée pour ton rang (' + currentProfile.rankEmoji + ' ' + currentProfile.rankName + ').';
+            ? t('gameover.promotedBanner', { emoji: myPromo.rankEmoji, name: tr(myPromo.rankName) })
+            : t('gameover.winRecordedBanner', { emoji: currentProfile.rankEmoji, name: tr(currentProfile.rankName) });
         } else {
           banner.classList.add('demote');
           banner.textContent = myDemo.demoted
-            ? '📉 Tu redescends ' + myDemo.rankEmoji + ' ' + myDemo.rankName + '.'
-            : 'Défaite classée : -2 victoires (' + currentProfile.rankEmoji + ' ' + currentProfile.rankName + ').';
+            ? t('gameover.demotedBanner', { emoji: myDemo.rankEmoji, name: tr(myDemo.rankName) })
+            : t('gameover.lossRecordedBanner', { emoji: currentProfile.rankEmoji, name: tr(currentProfile.rankName) });
         }
       }
     }
@@ -922,4 +1096,87 @@
     sessionStorage.removeItem('pw_role');
     location.href = location.pathname;
   });
+
+  // ---------- Musique d'ambiance (générée, pas de fichier audio téléchargé) ----------
+  let audioCtx = null;
+  let ambientNodes = null;
+  let musicMuted = localStorage.getItem('pw_music_muted') === '1';
+
+  function buildAmbientLoop(ctx) {
+    const master = ctx.createGain();
+    master.gain.value = musicMuted ? 0 : 0.05;
+    master.connect(ctx.destination);
+
+    // Nappe douce : 3 oscillateurs légèrement désaccordés (accord simple).
+    const freqs = [98, 123.5, 146.8]; // sol / si / ré, grave et discret
+    freqs.forEach((f) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.value = 0.5;
+      osc.connect(g).connect(master);
+      osc.start();
+    });
+
+    // Bruit filtré très doux, façon murmure de stade.
+    const bufferSize = ctx.sampleRate * 2;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.value = 500;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.35;
+    noise.connect(noiseFilter).connect(noiseGain).connect(master);
+    noise.start();
+
+    // Légère respiration du volume pour que ça ne soit pas plat.
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.07;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.015;
+    lfo.connect(lfoGain).connect(master.gain);
+    lfo.start();
+
+    return { master };
+  }
+
+  function startAmbientMusic() {
+    if (audioCtx) return; // déjà démarrée
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      ambientNodes = buildAmbientLoop(audioCtx);
+    } catch (e) { /* pas grave si l'audio n'est pas dispo */ }
+  }
+
+  function setMusicMuted(muted) {
+    musicMuted = muted;
+    localStorage.setItem('pw_music_muted', muted ? '1' : '0');
+    if (ambientNodes) ambientNodes.master.gain.value = muted ? 0 : 0.05;
+    document.getElementById('hud-sound-toggle').textContent = muted ? '🔇' : '🔊';
+  }
+  document.getElementById('hud-sound-toggle').addEventListener('click', () => setMusicMuted(!musicMuted));
+  document.getElementById('hud-sound-toggle').textContent = musicMuted ? '🔇' : '🔊';
+
+  // ---------- Bouton retour (écran d'attente) ----------
+  document.getElementById('btn-waiting-back').addEventListener('click', () => {
+    if (pollTimer) clearInterval(pollTimer);
+    sessionStorage.removeItem('pw_code');
+    sessionStorage.removeItem('pw_role');
+    roomCode = null;
+    myRole = null;
+    currentRoomMode = null;
+    updateHud();
+    showScreen('setup');
+  });
+
+  // ---------- Initialisation de la langue ----------
+  document.getElementById('lang-btn-fr').classList.toggle('active', currentLang === 'fr');
+  document.getElementById('lang-btn-en').classList.toggle('active', currentLang === 'en');
+  applyTranslations();
 })();
