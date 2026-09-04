@@ -148,13 +148,100 @@
     return shopCatalog;
   }
 
-  function ballMiniSvg(colors) {
+  // ---------- Motifs de ballon : un dessin différent par époque ----------
+  function petalsPattern(colors, count) {
+    let s = '';
+    const step = 360 / count;
+    for (let i = 0; i < count; i++) {
+      s += '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * step) + ' 50 50)"/>';
+    }
+    s += '<circle cx="50" cy="50" r="8.5" fill="#12203E"/>';
+    return s;
+  }
+
+  function pentagonPattern(colors) {
+    const dark = colors[0];
+    return (
+      '<g fill="none" stroke="' + dark + '" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">' +
+      '<polygon points="50,36 63,46 58,61 42,61 37,46" fill="' + dark + '"/>' +
+      '<path d="M50,36 L50,7"/><path d="M63,46 L88,38"/><path d="M58,61 L74,82"/>' +
+      '<path d="M42,61 L26,82"/><path d="M37,46 L12,38"/></g>' +
+      '<g fill="' + dark + '">' +
+      '<polygon points="50,7 57,13 54,20 46,20 43,13"/>' +
+      '<polygon points="88,38 93,46 87,52 80,49 81,41"/>' +
+      '<polygon points="74,82 68,89 59,86 60,78 68,75"/>' +
+      '<polygon points="26,82 32,89 41,86 40,78 32,75"/>' +
+      '<polygon points="12,38 7,46 13,52 20,49 19,41"/></g>'
+    );
+  }
+
+  function wavePattern(colors) {
+    return (
+      '<path d="M5,60 C30,30 45,80 95,35" stroke="' + colors[1] + '" stroke-width="10" fill="none" stroke-linecap="round"/>' +
+      '<path d="M5,60 C30,30 45,80 95,35" stroke="' + colors[2] + '" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="1 7"/>'
+    );
+  }
+
+  function braidPattern(colors) {
+    return (
+      '<path d="M10,20 C40,10 60,90 90,80" stroke="' + colors[0] + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+      '<path d="M90,20 C60,10 40,90 10,80" stroke="' + colors[1] + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+      '<path d="M20,8 C10,40 90,60 80,92" stroke="' + colors[2] + '" stroke-width="9" fill="none" stroke-linecap="round"/>'
+    );
+  }
+
+  function panelPattern(colors) {
+    return (
+      '<path d="M50,3 C20,20 20,80 50,97 C35,60 35,40 50,3 Z" fill="' + colors[1] + '" opacity=".92"/>' +
+      '<path d="M50,3 C80,20 80,80 50,97 C65,60 65,40 50,3 Z" fill="' + colors[0] + '" opacity=".92"/>' +
+      '<path d="M50,3 C20,20 20,80 50,97" stroke="' + colors[2] + '" stroke-width="2" fill="none"/>' +
+      '<path d="M50,3 C80,20 80,80 50,97" stroke="' + colors[2] + '" stroke-width="2" fill="none"/>'
+    );
+  }
+
+  function flamePattern(colors) {
+    let s = '';
+    for (let i = 0; i < 3; i++) {
+      s += '<path d="M50,50 L58,20 L66,50 Z" fill="' + colors[i % colors.length] + '" transform="rotate(' + (i * 120) + ' 50 50)"/>';
+    }
+    s += '<circle cx="50" cy="50" r="6" fill="' + colors[0] + '"/>';
+    return s;
+  }
+
+  function triFlagPattern(colors) {
+    return (
+      '<path d="M50,50 Q30,20 22,50 Q30,80 50,50 Z" fill="' + colors[0] + '"/>' +
+      '<path d="M50,50 Q70,20 78,50 Q70,80 50,50 Z" fill="' + colors[2] + '"/>'
+    );
+  }
+
+  function starPattern(colors) {
+    return (
+      '<circle cx="50" cy="50" r="30" fill="none" stroke="' + colors[0] + '" stroke-width="2"/>' +
+      '<circle cx="50" cy="50" r="20" fill="none" stroke="' + colors[2] + '" stroke-width="2"/>' +
+      '<polygon points="50,32 55,46 70,46 58,55 63,70 50,61 37,70 42,55 30,46 45,46" fill="' + colors[1] + '"/>'
+    );
+  }
+
+  function ballPatternMarkup(pattern, colors) {
+    switch (pattern) {
+      case 'petals6': return petalsPattern(colors, 6);
+      case 'pentagon': return pentagonPattern(colors);
+      case 'wave': return wavePattern(colors);
+      case 'braid': return braidPattern(colors);
+      case 'panel': return panelPattern(colors);
+      case 'flame': return flamePattern(colors);
+      case 'triflag': return triFlagPattern(colors);
+      case 'star': return starPattern(colors);
+      case 'petals3':
+      default: return petalsPattern(colors, 3);
+    }
+  }
+
+  function ballMiniSvg(ball) {
     return '<svg viewBox="0 0 100 100">' +
       '<circle cx="50" cy="50" r="47" fill="#eef1f4"/>' +
-      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[0] + '" transform="rotate(0 50 50)"/>' +
-      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[1] + '" transform="rotate(120 50 50)"/>' +
-      '<path d="M50,50 Q72,38 86,50 Q72,62 50,50 Z" fill="' + colors[2] + '" transform="rotate(240 50 50)"/>' +
-      '<circle cx="50" cy="50" r="8.5" fill="#12203E"/>' +
+      ballPatternMarkup(ball.pattern, ball.colors) +
       '</svg>';
   }
 
@@ -167,11 +254,6 @@
       '</svg>';
   }
 
-  function applyBallColors(colors) {
-    const petals = document.querySelectorAll('#ball .ball-petal');
-    petals.forEach((p, i) => { if (colors[i]) p.setAttribute('fill', colors[i]); });
-  }
-
   function applyKeeperColors(jersey, gloves) {
     document.querySelectorAll('#keeper .keeper-jersey').forEach((el) => el.setAttribute('fill', jersey));
     document.querySelectorAll('#keeper .keeper-glove').forEach((el) => el.setAttribute('stroke', gloves));
@@ -181,7 +263,7 @@
     const catalog = await loadShopCatalog();
     const skinId = (state.balls && state.balls[state.shooterIdx]) || 'classique';
     const skin = catalog.balls[skinId] || catalog.balls.classique;
-    applyBallColors(skin.colors);
+    document.getElementById('ball-pattern').innerHTML = ballPatternMarkup(skin.pattern, skin.colors);
   }
 
   async function applyKeeperSkinForState(state) {
@@ -221,7 +303,7 @@
 
     renderShopList(document.getElementById('shop-list-balls'), catalog.balls, 'ball',
       currentProfile.ownedBalls, currentProfile.selectedBall,
-      (ball) => ballMiniSvg(ball.colors),
+      (ball) => ballMiniSvg(ball),
       (ball) => (ball.price === 0 ? 'Gratuit' : '💎 ' + ball.price));
 
     renderShopList(document.getElementById('shop-list-keepers'), catalog.keepers, 'keeper',
