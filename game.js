@@ -78,6 +78,7 @@
       'pitch.hintResultSave': 'Le gardien a plongé au bon endroit', 'pitch.hintResultGoal': 'Le tireur a trompé le gardien',
       'pitch.errorPrefix': 'Erreur : {error}',
       'gameover.victory': 'VICTOIRE !', 'gameover.defeat': 'DÉFAITE', 'gameover.replayButton': 'Rejouer (nouvelle partie)',
+      'gameover.diamondsGained': '💎 +{n}',
       'gameover.promotedBanner': '🎉 Tu passes {emoji} {name} !',
       'gameover.winRecordedBanner': 'Victoire enregistrée pour ton rang ({emoji} {name}).',
       'gameover.demotedBanner': '📉 Tu redescends {emoji} {name}.',
@@ -131,6 +132,7 @@
       'pitch.hintResultSave': 'The keeper dove the right way', 'pitch.hintResultGoal': 'The shooter fooled the keeper',
       'pitch.errorPrefix': 'Error: {error}',
       'gameover.victory': 'VICTORY!', 'gameover.defeat': 'DEFEAT', 'gameover.replayButton': 'Play again (new match)',
+      'gameover.diamondsGained': '💎 +{n}',
       'gameover.promotedBanner': '🎉 You reach {emoji} {name}!',
       'gameover.winRecordedBanner': 'Win recorded for your rank ({emoji} {name}).',
       'gameover.demotedBanner': '📉 You drop to {emoji} {name}.',
@@ -1054,6 +1056,13 @@
     document.getElementById('gameover-role').textContent = iWon ? t('gameover.victory') : t('gameover.defeat');
     document.getElementById('winner-name').textContent = state.players[state.winner];
     document.getElementById('final-score').textContent = state.scores[0] + ' – ' + state.scores[1];
+
+    for (let i = 0; i < 2; i++) {
+      document.getElementById('gameover-stat-p' + (i + 1) + '-name').textContent = state.players[i] || t('scoreboard.player' + (i + 1));
+      document.getElementById('gameover-stat-p' + (i + 1) + '-score').textContent = state.scores[i];
+      const diamondsEl = document.getElementById('gameover-stat-p' + (i + 1) + '-diamonds');
+      diamondsEl.textContent = state.profiles && state.profiles[i] ? t('gameover.diamondsGained', { n: 5 }) : '';
+    }
 
     const banner = document.getElementById('promotion-banner');
     banner.style.display = 'none';

@@ -504,7 +504,21 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
 }
 .trophy{ width:58px; height:58px; margin:0 auto 16px; }
 .gameover-card .winner-name{ font-size:40px; margin:0 0 4px; color:var(--gold); }
-.gameover-card .final-score{ color:#9FB0D6; font-size:16px; margin:0 0 28px; }
+.gameover-card .final-score{ color:#9FB0D6; font-size:16px; margin:0 0 18px; }
+
+.gameover-stats{
+  display:flex; gap:10px; margin:0 0 22px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1);
+  border-radius:12px; padding:14px;
+}
+.gameover-stat-col{ flex:1; text-align:center; min-width:0; }
+.gameover-stat-col + .gameover-stat-col{ border-left:1px solid rgba(255,255,255,.1); }
+.gameover-stat-name{
+  font-size:12px; font-weight:700; color:#9FB0D6; text-transform:uppercase;
+  letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.gameover-stat-score{ font-family:'Anton',sans-serif; font-size:26px; color:var(--chalk); margin:4px 0; }
+.gameover-stat-diamonds{ font-size:12.5px; color:var(--neon); font-weight:700; min-height:16px; }
 
 @media (prefers-reduced-motion: reduce){
   .ball,.keeper,.result-banner{ transition-duration:.01ms !important; }
