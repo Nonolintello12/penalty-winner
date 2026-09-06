@@ -48,6 +48,9 @@
       'setup.modeHintRanked': 'Classée : victoire = +1 vers le palier suivant, défaite = -2.',
       'setup.createRule': "Tu vas recevoir un code à 4 lettres. Envoie-le à ton ami (par message, appel...) pour qu'il rejoigne ta partie depuis son ordinateur.",
       'setup.createButton': 'Créer la partie', 'setup.matchCode': 'Code de la partie', 'setup.joinButton': 'Rejoindre la partie',
+      'setup.tabQuick': '🌍 Inconnu',
+      'setup.quickRule': "Tu seras associé automatiquement à un autre joueur qui cherche une partie, n'importe où dans le monde. Partie amicale uniquement (ton rang ne bouge pas).",
+      'setup.quickButton': '🌍 Trouver un adversaire',
       'setup.errorCreateRoom': 'Oups, impossible de créer la partie ({error})',
       'setup.errorJoinCode': 'Le code fait 4 lettres, vérifie avec ton ami.',
       'setup.errorJoinRoom': 'Impossible de rejoindre : {error}',
@@ -61,6 +64,7 @@
       'shop.chosen': 'Choisi', 'shop.choose': 'Choisir', 'shop.buy': 'Acheter',
       'waiting.label': 'Ton code de partie', 'waiting.copyButton': 'Copier le lien',
       'waiting.qrLabel': 'Ou fais scanner ce code par ton ami :',
+      'waiting.quickLabel': '🌍 Recherche dans le monde entier',
       'waiting.status': 'En attente de ton adversaire…', 'waiting.backButton': '⬅ Retour',
       'pitch.firstTo': 'Premier à', 'pitch.tenGoals': '10 buts', 'pitch.winsMatch': 'remporte le match',
       'mode.pillRanked': 'CLASSÉE', 'scoreboard.player1': 'Joueur 1', 'scoreboard.player2': 'Joueur 2',
@@ -97,6 +101,9 @@
       'setup.modeHintRanked': 'Ranked: win = +1 toward the next tier, loss = -2.',
       'setup.createRule': "You'll get a 4-letter code. Send it to your friend (by text, call...) so they can join your match from their computer.",
       'setup.createButton': 'Create the match', 'setup.matchCode': 'Match code', 'setup.joinButton': 'Join the match',
+      'setup.tabQuick': '🌍 Stranger',
+      'setup.quickRule': "You'll be automatically matched with another player looking for a match, anywhere in the world. Casual only (your rank doesn't move).",
+      'setup.quickButton': '🌍 Find an opponent',
       'setup.errorCreateRoom': "Oops, couldn't create the match ({error})",
       'setup.errorJoinCode': 'The code is 4 letters, check with your friend.',
       'setup.errorJoinRoom': "Couldn't join: {error}",
@@ -110,6 +117,7 @@
       'shop.chosen': 'Selected', 'shop.choose': 'Select', 'shop.buy': 'Buy',
       'waiting.label': 'Your match code', 'waiting.copyButton': 'Copy link',
       'waiting.qrLabel': 'Or have your friend scan this code:',
+      'waiting.quickLabel': '🌍 Searching worldwide',
       'waiting.status': 'Waiting for your opponent…', 'waiting.backButton': '⬅ Back',
       'pitch.firstTo': 'First to', 'pitch.tenGoals': '10 goals', 'pitch.winsMatch': 'wins the match',
       'mode.pillRanked': 'RANKED', 'scoreboard.player1': 'Player 1', 'scoreboard.player2': 'Player 2',
@@ -225,20 +233,25 @@
     screens[key].classList.add('active');
   }
 
-  // ---------- Onglets Créer / Rejoindre ----------
+  // ---------- Onglets Créer / Rejoindre / Inconnu ----------
   const tabBtnCreate = document.getElementById('tab-btn-create');
   const tabBtnJoin = document.getElementById('tab-btn-join');
+  const tabBtnQuick = document.getElementById('tab-btn-quick');
   const tabCreate = document.getElementById('tab-create');
   const tabJoin = document.getElementById('tab-join');
+  const tabQuick = document.getElementById('tab-quick');
 
   function activateTab(which) {
     tabBtnCreate.classList.toggle('active', which === 'create');
     tabBtnJoin.classList.toggle('active', which === 'join');
+    tabBtnQuick.classList.toggle('active', which === 'quick');
     tabCreate.classList.toggle('active', which === 'create');
     tabJoin.classList.toggle('active', which === 'join');
+    tabQuick.classList.toggle('active', which === 'quick');
   }
   tabBtnCreate.addEventListener('click', () => activateTab('create'));
   tabBtnJoin.addEventListener('click', () => activateTab('join'));
+  tabBtnQuick.addEventListener('click', () => activateTab('quick'));
 
   // Si on arrive via un lien "?code=ABCD", on prépare l'onglet "Rejoindre"
   const urlCode = new URLSearchParams(location.search).get('code');
@@ -687,9 +700,15 @@
     }
   }
 
-  // ---------- Créer une partie ----------
+  // ---------- Créer une partie / matchmaking public ----------
   const btnCreate = document.getElementById('btn-create');
   const createError = document.getElementById('create-error');
+  let isQuickMatch = false;
+
+  function updateWaitingDisplay() {
+    document.getElementById('waiting-private-info').style.display = isQuickMatch ? 'none' : 'block';
+    document.getElementById('waiting-quick-info').style.display = isQuickMatch ? 'block' : 'none';
+  }
 
   async function createRoom() {
     createError.textContent = '';
@@ -706,13 +725,16 @@
       roomCode = data.code;
       myRole = data.role;
       currentRoomMode = data.state.mode;
+      isQuickMatch = false;
       updateHud();
       sessionStorage.setItem('pw_code', roomCode);
       sessionStorage.setItem('pw_role', myRole);
+      sessionStorage.setItem('pw_quick', '0');
       document.getElementById('waiting-code').textContent = roomCode;
       const joinLink = location.origin + location.pathname + '?code=' + roomCode;
       document.getElementById('waiting-link').value = joinLink;
       renderWaitingQrCode(joinLink);
+      updateWaitingDisplay();
       showScreen('waiting');
       startPolling();
     } catch (e) {
@@ -721,6 +743,39 @@
     btnCreate.disabled = false;
   }
   btnCreate.addEventListener('click', createRoom);
+
+  // ---------- Matchmaking public (jouer contre un inconnu) ----------
+  const btnQuickmatch = document.getElementById('btn-quickmatch');
+  const quickError = document.getElementById('quick-error');
+  btnQuickmatch.addEventListener('click', async () => {
+    quickError.textContent = '';
+    const name = currentProfile ? currentProfile.username : (document.getElementById('quick-name').value.trim() || t('scoreboard.player1'));
+    btnQuickmatch.disabled = true;
+    try {
+      const data = await api('quickmatch', {
+        name,
+        profileUsername: currentProfile ? currentProfile.username : undefined,
+        ballSkin: currentProfile ? currentProfile.selectedBall : undefined,
+        keeperSkin: currentProfile ? currentProfile.selectedKeeper : undefined,
+      });
+      roomCode = data.code;
+      myRole = data.role;
+      currentRoomMode = data.state.mode;
+      isQuickMatch = data.role === 'p1';
+      updateHud();
+      sessionStorage.setItem('pw_code', roomCode);
+      sessionStorage.setItem('pw_role', myRole);
+      sessionStorage.setItem('pw_quick', isQuickMatch ? '1' : '0');
+      if (isQuickMatch) {
+        updateWaitingDisplay();
+        showScreen('waiting');
+      }
+      startPolling();
+    } catch (e) {
+      quickError.textContent = t('setup.errorCreateRoom', { error: te(e.message) });
+    }
+    btnQuickmatch.disabled = false;
+  });
 
   document.getElementById('btn-copy-link').addEventListener('click', () => {
     const input = document.getElementById('waiting-link');
@@ -767,6 +822,7 @@
     if (savedCode && savedRole) {
       roomCode = savedCode;
       myRole = savedRole;
+      isQuickMatch = sessionStorage.getItem('pw_quick') === '1';
       startPolling();
     }
   })();
@@ -787,6 +843,7 @@
       clearInterval(pollTimer);
       sessionStorage.removeItem('pw_code');
       sessionStorage.removeItem('pw_role');
+      sessionStorage.removeItem('pw_quick');
       showScreen('setup');
     }
   }
@@ -1049,6 +1106,7 @@
       document.getElementById('waiting-code').textContent = roomCode;
       document.getElementById('waiting-link').value = joinLink;
       renderWaitingQrCode(joinLink);
+      updateWaitingDisplay();
       showScreen('waiting');
       return;
     }
@@ -1081,6 +1139,7 @@
   document.getElementById('btn-replay').addEventListener('click', () => {
     sessionStorage.removeItem('pw_code');
     sessionStorage.removeItem('pw_role');
+    sessionStorage.removeItem('pw_quick');
     location.href = location.pathname;
   });
 
@@ -1089,9 +1148,11 @@
     if (pollTimer) clearInterval(pollTimer);
     sessionStorage.removeItem('pw_code');
     sessionStorage.removeItem('pw_role');
+    sessionStorage.removeItem('pw_quick');
     roomCode = null;
     myRole = null;
     currentRoomMode = null;
+    isQuickMatch = false;
     updateHud();
     showScreen('setup');
   });

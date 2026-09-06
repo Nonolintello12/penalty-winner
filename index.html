@@ -114,6 +114,7 @@
       <div class="setup-tabs">
         <button type="button" class="tab-btn active" id="tab-btn-create" data-i18n="setup.tabCreate">Créer une partie</button>
         <button type="button" class="tab-btn" id="tab-btn-join" data-i18n="setup.tabJoin">Rejoindre une partie</button>
+        <button type="button" class="tab-btn" id="tab-btn-quick" data-i18n="setup.tabQuick">🌍 Inconnu</button>
       </div>
 
       <div class="tab-panel active" id="tab-create">
@@ -149,6 +150,20 @@
         <p class="error-msg" id="join-error"></p>
         <button class="btn btn-block" id="btn-join" data-i18n="setup.joinButton">Rejoindre la partie</button>
       </div>
+
+      <div class="tab-panel" id="tab-quick">
+        <div class="field" id="quick-name-field">
+          <label for="quick-name" data-i18n="setup.yourName">Ton prénom</label>
+          <input id="quick-name" type="text" maxlength="16" placeholder="Ton prénom" data-i18n-placeholder="setup.yourNamePlaceholder">
+        </div>
+        <p class="rule-line" data-i18n="setup.quickRule">
+          Tu seras associé automatiquement à un autre joueur qui cherche une
+          partie, n'importe où dans le monde. Partie amicale uniquement (ton
+          rang ne bouge pas).
+        </p>
+        <p class="error-msg" id="quick-error"></p>
+        <button class="btn btn-block" id="btn-quickmatch" data-i18n="setup.quickButton">🌍 Trouver un adversaire</button>
+      </div>
     </div>
   </section>
 
@@ -181,15 +196,20 @@
   <section class="screen" id="screen-waiting">
     <div class="card-top-accent"></div>
     <div class="waiting-card">
-      <p class="room-code-label" data-i18n="waiting.label">Ton code de partie</p>
-      <div class="room-code-display" id="waiting-code">----</div>
-      <div class="copy-row">
-        <input type="text" id="waiting-link" readonly aria-label="Lien à partager">
-        <button class="btn btn-ghost" id="btn-copy-link" data-i18n="waiting.copyButton">Copier le lien</button>
+      <div id="waiting-private-info">
+        <p class="room-code-label" data-i18n="waiting.label">Ton code de partie</p>
+        <div class="room-code-display" id="waiting-code">----</div>
+        <div class="copy-row">
+          <input type="text" id="waiting-link" readonly aria-label="Lien à partager">
+          <button class="btn btn-ghost" id="btn-copy-link" data-i18n="waiting.copyButton">Copier le lien</button>
+        </div>
+        <p class="waiting-qr-label" data-i18n="waiting.qrLabel">Ou fais scanner ce code par ton ami :</p>
+        <div class="waiting-qr" id="waiting-qr"></div>
       </div>
-      <p class="waiting-qr-label" data-i18n="waiting.qrLabel">Ou fais scanner ce code par ton ami :</p>
-      <div class="waiting-qr" id="waiting-qr"></div>
-      <p class="waiting-status"><span class="spinner" aria-hidden="true"></span> <span data-i18n="waiting.status">En attente de ton adversaire…</span></p>
+      <div id="waiting-quick-info" style="display:none;">
+        <p class="room-code-label" data-i18n="waiting.quickLabel">🌍 Recherche dans le monde entier</p>
+      </div>
+      <p class="waiting-status"><span class="spinner" aria-hidden="true"></span> <span id="waiting-status-text" data-i18n="waiting.status">En attente de ton adversaire…</span></p>
       <button class="btn btn-ghost btn-block" id="btn-waiting-back" style="margin-top:16px;" data-i18n="waiting.backButton">⬅ Retour</button>
     </div>
   </section>

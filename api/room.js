@@ -26,6 +26,19 @@ function roomKey(code) {
   return 'room:' + code;
 }
 
+const QUEUE_KEY = 'queue:public';
+const QUEUE_TTL_SECONDS = 120; // une recherche abandonnée disparaît après 2 min
+
+function joinAsP2(state, name, profileUsername, ballSkin, keeperSkin) {
+  state.players[1] = name;
+  state.profiles[1] = profileUsername;
+  state.balls[1] = ballSkin || 'classique';
+  state.keepers[1] = keeperSkin || 'classique';
+  state.phase = 'shoot';
+  state.version += 1;
+  return state;
+}
+
 function clampPct(v) {
   return Math.max(2, Math.min(98, Number(v)));
 }
@@ -124,6 +137,56 @@ module.exports = async (req, res) => {
         return res.status(200).json({ code, role: 'p1', state: redactForRole(state, 'p1') });
       }
 
+      // Matchmaking public : associe deux inconnus sans code à partager.
+      // Toujours en mode classique (pas d'enjeu de rang face à un inconnu).
+      if (action === 'quickmatch') {
+        const name = String(body.name || 'Joueur 1').slice(0, 16);
+        const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
+        const ballSkin = body.ballSkin ? String(body.ballSkin).slice(0, 24) : null;
+        const keeperSkin = body.keeperSkin ? String(body.keeperSkin).slice(0, 24) : null;
+
+        const waitingCode = await redis.get(QUEUE_KEY);
+        if (waitingCode) {
+          const waitingState = await loadState(waitingCode);
+          if (waitingState && !waitingState.players[1]) {
+            joinAsP2(waitingState, name, profileUsername, ballSkin, keeperSkin);
+            await saveState(waitingCode, waitingState);
+            await redis.del(QUEUE_KEY);
+            return res.status(200).json({ code: waitingCode, role: 'p2', state: redactForRole(waitingState, 'p2'), quickmatch: true });
+          }
+          await redis.del(QUEUE_KEY); // salon périmé ou déjà complet, on nettoie la file
+        }
+
+        // Personne n'attendait : on crée un salon public et on essaie de
+        // réserver la file (opération atomique pour limiter les courses).
+        let code = randomCode();
+        for (let tries = 0; tries < 5; tries++) {
+          if (!(await redis.get(roomKey(code)))) break;
+          code = randomCode();
+        }
+        const state = freshState(name, profileUsername, 'classic', ballSkin, keeperSkin);
+        state.public = true;
+        await saveState(code, state);
+
+        const claimed = await redis.set(QUEUE_KEY, code, { nx: true, ex: QUEUE_TTL_SECONDS });
+        if (!claimed) {
+          // quelqu'un a réservé la file une fraction de seconde avant nous :
+          // on rejoint son salon plutôt que d'attendre pour rien.
+          const otherCode = await redis.get(QUEUE_KEY);
+          if (otherCode && otherCode !== code) {
+            const otherState = await loadState(otherCode);
+            if (otherState && !otherState.players[1]) {
+              joinAsP2(otherState, name, profileUsername, ballSkin, keeperSkin);
+              await saveState(otherCode, otherState);
+              await redis.del(QUEUE_KEY);
+              return res.status(200).json({ code: otherCode, role: 'p2', state: redactForRole(otherState, 'p2'), quickmatch: true });
+            }
+          }
+        }
+
+        return res.status(200).json({ code, role: 'p1', state: redactForRole(state, 'p1'), quickmatch: true });
+      }
+
       const code = String(body.code || '').toUpperCase();
       if (!code) return res.status(400).json({ error: 'code manquant' });
 
@@ -136,12 +199,7 @@ module.exports = async (req, res) => {
         const ballSkin = body.ballSkin ? String(body.ballSkin).slice(0, 24) : null;
         const keeperSkin = body.keeperSkin ? String(body.keeperSkin).slice(0, 24) : null;
         if (state.players[1]) return res.status(409).json({ error: 'cette partie est déjà complète' });
-        state.players[1] = name;
-        state.profiles[1] = profileUsername;
-        state.balls[1] = ballSkin || 'classique';
-        state.keepers[1] = keeperSkin || 'classique';
-        state.phase = 'shoot';
-        state.version += 1;
+        joinAsP2(state, name, profileUsername, ballSkin, keeperSkin);
         await saveState(code, state);
         return res.status(200).json({ code, role: 'p2', state: redactForRole(state, 'p2') });
       }
