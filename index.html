@@ -156,10 +156,17 @@
           <label for="quick-name" data-i18n="setup.yourName">Ton prénom</label>
           <input id="quick-name" type="text" maxlength="16" placeholder="Ton prénom" data-i18n-placeholder="setup.yourNamePlaceholder">
         </div>
+        <div class="field mode-field" id="quick-mode-field" style="display:none;">
+          <label data-i18n="setup.modeLabel">Mode de partie</label>
+          <div class="mode-toggle">
+            <button type="button" class="mode-btn active" id="quick-mode-btn-classic" data-mode="classic" data-i18n="setup.modeCasual">Classique</button>
+            <button type="button" class="mode-btn" id="quick-mode-btn-ranked" data-mode="ranked" data-i18n="setup.modeRanked">Classée</button>
+          </div>
+          <p class="mode-hint" id="quick-mode-hint" data-i18n="setup.modeHintCasual">Amical : ton rang ne bouge pas.</p>
+        </div>
         <p class="rule-line" data-i18n="setup.quickRule">
-          Tu seras associé automatiquement à un autre joueur qui cherche une
-          partie, n'importe où dans le monde. Partie amicale uniquement (ton
-          rang ne bouge pas).
+          Tu seras associé automatiquement à un autre joueur qui cherche le
+          même mode de partie, n'importe où dans le monde.
         </p>
         <p class="error-msg" id="quick-error"></p>
         <button class="btn btn-block" id="btn-quickmatch" data-i18n="setup.quickButton">🌍 Trouver un adversaire</button>

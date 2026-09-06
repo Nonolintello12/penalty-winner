@@ -49,7 +49,7 @@
       'setup.createRule': "Tu vas recevoir un code à 4 lettres. Envoie-le à ton ami (par message, appel...) pour qu'il rejoigne ta partie depuis son ordinateur.",
       'setup.createButton': 'Créer la partie', 'setup.matchCode': 'Code de la partie', 'setup.joinButton': 'Rejoindre la partie',
       'setup.tabQuick': '🌍 Inconnu',
-      'setup.quickRule': "Tu seras associé automatiquement à un autre joueur qui cherche une partie, n'importe où dans le monde. Partie amicale uniquement (ton rang ne bouge pas).",
+      'setup.quickRule': "Tu seras associé automatiquement à un autre joueur qui cherche le même mode de partie, n'importe où dans le monde.",
       'setup.quickButton': '🌍 Trouver un adversaire',
       'setup.errorCreateRoom': 'Oups, impossible de créer la partie ({error})',
       'setup.errorJoinCode': 'Le code fait 4 lettres, vérifie avec ton ami.',
@@ -103,7 +103,7 @@
       'setup.createRule': "You'll get a 4-letter code. Send it to your friend (by text, call...) so they can join your match from their computer.",
       'setup.createButton': 'Create the match', 'setup.matchCode': 'Match code', 'setup.joinButton': 'Join the match',
       'setup.tabQuick': '🌍 Stranger',
-      'setup.quickRule': "You'll be automatically matched with another player looking for a match, anywhere in the world. Casual only (your rank doesn't move).",
+      'setup.quickRule': "You'll be automatically matched with another player looking for the same match mode, anywhere in the world.",
       'setup.quickButton': '🌍 Find an opponent',
       'setup.errorCreateRoom': "Oops, couldn't create the match ({error})",
       'setup.errorJoinCode': 'The code is 4 letters, check with your friend.',
@@ -283,11 +283,13 @@
     const createNameField = document.getElementById('create-name-field');
     const joinNameField = document.getElementById('join-name-field');
     const modeField = document.getElementById('mode-field');
+    const quickModeField = document.getElementById('quick-mode-field');
     if (!currentProfile) {
       bar.style.display = 'none';
       createNameField.style.display = '';
       joinNameField.style.display = '';
       modeField.style.display = 'none';
+      quickModeField.style.display = 'none';
       selectedMode = 'classic';
       setModeButtons('classic');
       return;
@@ -296,6 +298,7 @@
     createNameField.style.display = 'none';
     joinNameField.style.display = 'none';
     modeField.style.display = 'block';
+    quickModeField.style.display = 'block';
     document.getElementById('profile-bar-name').textContent = currentProfile.username;
     document.getElementById('profile-bar-rank').textContent = currentProfile.rankEmoji + ' ' + tr(currentProfile.rankName);
     const fill = document.getElementById('profile-bar-progress-fill');
@@ -570,19 +573,25 @@
     }
   }
 
-  // ---------- Mode de partie : classique ou classée ----------
+  // ---------- Mode de partie : classique ou classée (partagé Créer + Inconnu) ----------
   let selectedMode = 'classic';
-  const modeBtnClassic = document.getElementById('mode-btn-classic');
-  const modeBtnRanked = document.getElementById('mode-btn-ranked');
-  const modeHint = document.getElementById('mode-hint');
+  const modeButtonPairs = [
+    [document.getElementById('mode-btn-classic'), document.getElementById('mode-btn-ranked'), document.getElementById('mode-hint')],
+    [document.getElementById('quick-mode-btn-classic'), document.getElementById('quick-mode-btn-ranked'), document.getElementById('quick-mode-hint')],
+  ];
   function setModeButtons(mode) {
     selectedMode = mode;
-    modeBtnClassic.classList.toggle('active', mode === 'classic');
-    modeBtnRanked.classList.toggle('active', mode === 'ranked');
-    modeHint.textContent = mode === 'ranked' ? t('setup.modeHintRanked') : t('setup.modeHintCasual');
+    const hintText = mode === 'ranked' ? t('setup.modeHintRanked') : t('setup.modeHintCasual');
+    modeButtonPairs.forEach(([btnClassic, btnRanked, hint]) => {
+      btnClassic.classList.toggle('active', mode === 'classic');
+      btnRanked.classList.toggle('active', mode === 'ranked');
+      hint.textContent = hintText;
+    });
   }
-  modeBtnClassic.addEventListener('click', () => setModeButtons('classic'));
-  modeBtnRanked.addEventListener('click', () => setModeButtons('ranked'));
+  modeButtonPairs.forEach(([btnClassic, btnRanked]) => {
+    btnClassic.addEventListener('click', () => setModeButtons('classic'));
+    btnRanked.addEventListener('click', () => setModeButtons('ranked'));
+  });
 
   // Onglets Créer un profil / Se connecter
   const ptabBtnNew = document.getElementById('ptab-btn-new');
@@ -757,6 +766,7 @@
       const data = await api('quickmatch', {
         name,
         profileUsername: currentProfile ? currentProfile.username : undefined,
+        mode: currentProfile ? selectedMode : 'classic',
         ballSkin: currentProfile ? currentProfile.selectedBall : undefined,
         keeperSkin: currentProfile ? currentProfile.selectedKeeper : undefined,
       });

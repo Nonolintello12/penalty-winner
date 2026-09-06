@@ -26,8 +26,13 @@ function roomKey(code) {
   return 'room:' + code;
 }
 
-const QUEUE_KEY = 'queue:public';
 const QUEUE_TTL_SECONDS = 120; // une recherche abandonnée disparaît après 2 min
+
+// Une file par mode : un joueur qui cherche une partie classée n'est
+// associé qu'à quelqu'un qui cherche aussi une partie classée.
+function queueKey(mode) {
+  return 'queue:public:' + (mode === 'ranked' ? 'ranked' : 'classic');
+}
 
 function joinAsP2(state, name, profileUsername, ballSkin, keeperSkin) {
   state.players[1] = name;
@@ -138,23 +143,25 @@ module.exports = async (req, res) => {
       }
 
       // Matchmaking public : associe deux inconnus sans code à partager.
-      // Toujours en mode classique (pas d'enjeu de rang face à un inconnu).
+      // Une file séparée par mode : classée ne rencontre que classée.
       if (action === 'quickmatch') {
         const name = String(body.name || 'Joueur 1').slice(0, 16);
         const profileUsername = body.profileUsername ? String(body.profileUsername).slice(0, 16) : null;
+        const mode = body.mode === 'ranked' ? 'ranked' : 'classic';
         const ballSkin = body.ballSkin ? String(body.ballSkin).slice(0, 24) : null;
         const keeperSkin = body.keeperSkin ? String(body.keeperSkin).slice(0, 24) : null;
+        const qKey = queueKey(mode);
 
-        const waitingCode = await redis.get(QUEUE_KEY);
+        const waitingCode = await redis.get(qKey);
         if (waitingCode) {
           const waitingState = await loadState(waitingCode);
           if (waitingState && !waitingState.players[1]) {
             joinAsP2(waitingState, name, profileUsername, ballSkin, keeperSkin);
             await saveState(waitingCode, waitingState);
-            await redis.del(QUEUE_KEY);
+            await redis.del(qKey);
             return res.status(200).json({ code: waitingCode, role: 'p2', state: redactForRole(waitingState, 'p2'), quickmatch: true });
           }
-          await redis.del(QUEUE_KEY); // salon périmé ou déjà complet, on nettoie la file
+          await redis.del(qKey); // salon périmé ou déjà complet, on nettoie la file
         }
 
         // Personne n'attendait : on crée un salon public et on essaie de
@@ -164,21 +171,21 @@ module.exports = async (req, res) => {
           if (!(await redis.get(roomKey(code)))) break;
           code = randomCode();
         }
-        const state = freshState(name, profileUsername, 'classic', ballSkin, keeperSkin);
+        const state = freshState(name, profileUsername, mode, ballSkin, keeperSkin);
         state.public = true;
         await saveState(code, state);
 
-        const claimed = await redis.set(QUEUE_KEY, code, { nx: true, ex: QUEUE_TTL_SECONDS });
+        const claimed = await redis.set(qKey, code, { nx: true, ex: QUEUE_TTL_SECONDS });
         if (!claimed) {
           // quelqu'un a réservé la file une fraction de seconde avant nous :
           // on rejoint son salon plutôt que d'attendre pour rien.
-          const otherCode = await redis.get(QUEUE_KEY);
+          const otherCode = await redis.get(qKey);
           if (otherCode && otherCode !== code) {
             const otherState = await loadState(otherCode);
             if (otherState && !otherState.players[1]) {
               joinAsP2(otherState, name, profileUsername, ballSkin, keeperSkin);
               await saveState(otherCode, otherState);
-              await redis.del(QUEUE_KEY);
+              await redis.del(qKey);
               return res.status(200).json({ code: otherCode, role: 'p2', state: redactForRole(otherState, 'p2'), quickmatch: true });
             }
           }
