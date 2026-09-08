@@ -236,11 +236,12 @@
       </div>
     </div>
     <p class="target-note" id="target-note"><span data-i18n="pitch.firstTo">Premier à</span> <strong data-i18n="pitch.tenGoals">10 buts</strong> <span data-i18n="pitch.winsMatch">remporte le match</span> <span class="mode-pill" id="mode-pill" style="display:none;"></span></p>
+    <p class="match-point-banner" id="match-point-banner" style="display:none;" data-i18n="pitch.matchPoint">🔥 BALLE DE MATCH 🔥</p>
 
     <!-- SHOOT / KEEP -->
     <section class="screen" id="screen-pitch">
       <div class="card-top-accent"></div>
-      <div class="pitch-wrap">
+      <div class="pitch-wrap" id="pitch-wrap">
         <div class="pitch" id="pitch">
           <div class="floodlight"></div>
           <div class="floodlight-beam" style="left:8%;"></div>
@@ -307,6 +308,9 @@
             <p id="turn-overlay-text">…</p>
           </div>
         </div>
+      </div>
+      <div class="aim-timer-bar" id="aim-timer-bar" style="display:none;">
+        <div class="aim-timer-fill" id="aim-timer-fill"></div>
       </div>
       <div class="pitch-footer">
         <span class="hint" id="pitch-hint">…</span>

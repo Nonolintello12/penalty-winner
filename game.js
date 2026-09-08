@@ -7,6 +7,8 @@
   const KEEPER_H_PCT = 22;
   const KEEPER_START_PCT = { x: 50, y: 100 };
   const POLL_MS = 1000;
+  const WIN_TARGET = 10;
+  const AIM_TIMER_MS = 5000; // 5 secondes pour viser avant le tir de panique
 
   // ---------- État local (côté navigateur uniquement) ----------
   let roomCode = null;
@@ -67,6 +69,7 @@
       'waiting.quickLabel': '🌍 Recherche dans le monde entier',
       'waiting.status': 'En attente de ton adversaire…', 'waiting.backButton': '⬅ Retour',
       'pitch.firstTo': 'Premier à', 'pitch.tenGoals': '10 buts', 'pitch.winsMatch': 'remporte le match',
+      'pitch.matchPoint': '🔥 BALLE DE MATCH 🔥',
       'mode.pillRanked': 'CLASSÉE', 'scoreboard.player1': 'Joueur 1', 'scoreboard.player2': 'Joueur 2',
       'pitch.hintAimShoot': 'Clique dans la cage pour viser ton tir', 'pitch.confirmShoot': 'Valider le tir',
       'pitch.hintAimKeep': 'Clique où le gardien doit plonger', 'pitch.confirmKeep': 'Valider le plongeon',
@@ -121,6 +124,7 @@
       'waiting.quickLabel': '🌍 Searching worldwide',
       'waiting.status': 'Waiting for your opponent…', 'waiting.backButton': '⬅ Back',
       'pitch.firstTo': 'First to', 'pitch.tenGoals': '10 goals', 'pitch.winsMatch': 'wins the match',
+      'pitch.matchPoint': '🔥 MATCH POINT 🔥',
       'mode.pillRanked': 'RANKED', 'scoreboard.player1': 'Player 1', 'scoreboard.player2': 'Player 2',
       'pitch.hintAimShoot': 'Click in the goal to aim your shot', 'pitch.confirmShoot': 'Confirm shot',
       'pitch.hintAimKeep': 'Click where the keeper should dive', 'pitch.confirmKeep': 'Confirm dive',
@@ -928,19 +932,55 @@
     }
   });
 
-  btnConfirm.addEventListener('click', async (evt) => {
-    if (!pendingPct || !currentMode || evt.detail === 0) return;
+  // ---------- Chrono de visée : la pression monte, sinon tir de panique ----------
+  let aimTimerInterval = null;
+  let aimTimerDeadline = 0;
+  const aimTimerBar = document.getElementById('aim-timer-bar');
+  const aimTimerFill = document.getElementById('aim-timer-fill');
+
+  function stopAimTimer() {
+    if (aimTimerInterval) { clearInterval(aimTimerInterval); aimTimerInterval = null; }
+    aimTimerBar.style.display = 'none';
+  }
+
+  function startAimTimer() {
+    stopAimTimer();
+    aimTimerBar.style.display = 'block';
+    aimTimerFill.style.width = '100%';
+    aimTimerFill.classList.remove('urgent');
+    aimTimerDeadline = Date.now() + AIM_TIMER_MS;
+    aimTimerInterval = setInterval(() => {
+      const remaining = aimTimerDeadline - Date.now();
+      const pct = Math.max(0, Math.min(100, (remaining / AIM_TIMER_MS) * 100));
+      aimTimerFill.style.width = pct + '%';
+      aimTimerFill.classList.toggle('urgent', remaining < AIM_TIMER_MS * 0.3);
+      if (remaining <= 0) {
+        stopAimTimer();
+        // Tir de panique : si rien n'a été choisi, une position au hasard dans la cage.
+        const panicPos = pendingPct || { x: 20 + Math.random() * 60, y: 15 + Math.random() * 70 };
+        submitAction(panicPos);
+      }
+    }, 100);
+  }
+
+  async function submitAction(pos) {
+    stopAimTimer();
     btnConfirm.disabled = true;
     aimArea.disabled = true;
     btnConfirm.blur();
     try {
-      const data = await api(currentMode, { pos: pendingPct });
+      const data = await api(currentMode, { pos });
       pendingPct = null;
       applyState(data.state);
     } catch (e) {
       pitchHint.textContent = t('pitch.errorPrefix', { error: te(e.message) });
       aimArea.disabled = false;
     }
+  }
+
+  btnConfirm.addEventListener('click', (evt) => {
+    if (!pendingPct || !currentMode || evt.detail === 0) return;
+    submitAction(pendingPct);
   });
 
   function updateScoreboard(state) {
@@ -957,6 +997,12 @@
     } else {
       pill.style.display = 'none';
     }
+
+    // Balle de match : quelqu'un est à un but de la victoire -> on met la pression.
+    const isMatchPoint = state.phase !== 'gameover' &&
+      (state.scores[0] === WIN_TARGET - 1 || state.scores[1] === WIN_TARGET - 1);
+    document.getElementById('match-point-banner').style.display = isMatchPoint ? 'block' : 'none';
+    document.getElementById('pitch-wrap').classList.toggle('match-point', isMatchPoint);
   }
 
   function spawnConfetti() {
@@ -1015,6 +1061,12 @@
       if (!r.isSave) spawnConfetti();
       updateScoreboard(state);
       pitchHint.textContent = r.isSave ? t('pitch.hintResultSave') : t('pitch.hintResultGoal');
+
+      // Petit tremblement d'écran pour l'impact du but/de l'arrêt.
+      const pitchEl = document.getElementById('pitch');
+      pitchEl.classList.remove('shake');
+      void pitchEl.offsetWidth; // force le navigateur à relire l'état avant de rejouer l'animation
+      pitchEl.classList.add('shake');
     }, 560);
   }
 
@@ -1036,6 +1088,7 @@
       pitchHint.textContent = t('pitch.hintAimShoot');
       btnConfirm.textContent = t('pitch.confirmShoot');
       btnConfirm.disabled = !pendingPct;
+      startAimTimer();
     } else if (iAmKeeping) {
       currentMode = 'keep';
       aimArea.disabled = false;
@@ -1043,11 +1096,13 @@
       pitchHint.textContent = t('pitch.hintAimKeep');
       btnConfirm.textContent = t('pitch.confirmKeep');
       btnConfirm.disabled = !pendingPct;
+      startAimTimer();
     } else {
       currentMode = null;
       aimArea.disabled = true;
       btnConfirm.disabled = true;
       pendingPct = null;
+      stopAimTimer();
       turnOverlay.style.display = 'flex';
       if (state.phase === 'shoot') {
         turnOverlayTitle.textContent = t('pitch.turnTitleShoot');
