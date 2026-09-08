@@ -3,7 +3,7 @@
 // ton profil.
 const { getRedis } = require('../lib/redis');
 const { publicProfile } = require('../lib/ranks');
-const { BALLS, KEEPERS, buyItem, selectItem } = require('../lib/shop');
+const { BALLS, KEEPERS, POWERS, buyItem, selectItem } = require('../lib/shop');
 
 const redis = getRedis();
 
@@ -15,7 +15,7 @@ async function checkAuth(username, secretCode) {
 
 module.exports = async (req, res) => {
   if (req.method === 'GET') {
-    return res.status(200).json({ balls: BALLS, keepers: KEEPERS });
+    return res.status(200).json({ balls: BALLS, keepers: KEEPERS, powers: POWERS });
   }
 
   if (req.method !== 'POST') {
@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
     const { action, username, secretCode, itemId } = body;
-    const kind = body.kind === 'keeper' ? 'keeper' : 'ball';
+    const kind = body.kind === 'keeper' ? 'keeper' : body.kind === 'power' ? 'power' : 'ball';
 
     const authed = await checkAuth(username, secretCode);
     if (!authed) return res.status(401).json({ error: 'pseudo ou code secret incorrect' });

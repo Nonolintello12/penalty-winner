@@ -185,6 +185,7 @@
       <div class="setup-tabs">
         <button type="button" class="tab-btn active" id="shoptab-btn-balls" data-i18n="shop.tabBalls">Ballons</button>
         <button type="button" class="tab-btn" id="shoptab-btn-keepers" data-i18n="shop.tabKeepers">Gardiens</button>
+        <button type="button" class="tab-btn" id="shoptab-btn-powers" data-i18n="shop.tabPowers">⚡ Pouvoirs</button>
       </div>
 
       <div class="tab-panel active" id="shoptab-balls">
@@ -193,6 +194,10 @@
       <div class="tab-panel" id="shoptab-keepers">
         <div id="shop-list-keepers" class="shop-list"></div>
         <p class="mode-hint" style="margin-top:8px;" data-i18n="shop.styleHint">Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.</p>
+      </div>
+      <div class="tab-panel" id="shoptab-powers">
+        <div id="shop-list-powers" class="shop-list"></div>
+        <p class="mode-hint" style="margin-top:8px;" data-i18n="shop.powersHint">Un pouvoir acheté est utilisable une fois par match, en cliquant dessus juste avant de valider ton tir.</p>
       </div>
 
       <button class="btn btn-ghost btn-block" id="btn-shop-back" style="margin-top:14px;" data-i18n="shop.backButton">Retour au jeu</button>
@@ -312,6 +317,7 @@
       <div class="aim-timer-bar" id="aim-timer-bar" style="display:none;">
         <div class="aim-timer-fill" id="aim-timer-fill"></div>
       </div>
+      <button type="button" class="power-toggle-btn" id="power-toggle-btn" style="display:none;" data-i18n="pitch.powerButton">⚡ Utiliser Tir Surprise</button>
       <div class="pitch-footer">
         <span class="hint" id="pitch-hint">…</span>
         <button class="btn" id="btn-confirm" disabled>Valider</button>

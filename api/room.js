@@ -6,15 +6,21 @@
 
 const { getRedis } = require('../lib/redis');
 const { recordWin, recordLoss, TIERS } = require('../lib/ranks');
-const { addDiamonds, DIAMONDS_PER_MATCH } = require('../lib/shop');
+const { addDiamonds, DIAMONDS_PER_MATCH, POWERS } = require('../lib/shop');
 
 const redis = getRedis();
 
 const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // pas de 0/O ni 1/I, pour éviter les confusions
 const ROOM_TTL_SECONDS = 6 * 60 * 60; // une partie oubliée disparaît après 6h
 const SAVE_RADIUS = 0.34; // même règle d'arrêt que dans le jeu d'origine
+const SAVE_RADIUS_HARDER = 0.2; // tir surprise : bien plus dur à arrêter
 const WIN_TARGET = 10;
 const REVEAL_MS = 2600; // durée d'affichage de l'animation but/arrêt
+
+async function getProfile(username) {
+  if (!username) return null;
+  return (await redis.get('profile:' + String(username).toLowerCase())) || null;
+}
 
 function randomCode() {
   let code = '';
@@ -56,9 +62,11 @@ function freshState(name1, profileUsername1, mode, ballSkin1, keeperSkin1) {
     balls: [ballSkin1 || 'classique', 'classique'], // ballon choisi par chaque joueur
     keepers: [keeperSkin1 || 'classique', 'classique'], // gardien choisi par chaque joueur
     scores: [0, 0],
+    powersUsed: [false, false], // un pouvoir acheté ne se réutilise pas dans le même match
     shooterIdx: 0,
     phase: 'waiting', // waiting -> shoot -> keep -> reveal -> gameover
     shotPos: null,
+    shotUsedPower: null, // pouvoir actif sur le tir en cours (transitoire, remis à null au tour suivant)
     keepPos: null,
     lastResult: null,
     revealUntil: null,
@@ -87,6 +95,7 @@ function resolveAutoAdvance(state) {
       state.phase = 'shoot';
     }
     state.shotPos = null;
+    state.shotUsedPower = null;
     state.keepPos = null;
     state.lastResult = null;
     state.revealUntil = null;
@@ -222,6 +231,20 @@ module.exports = async (req, res) => {
         if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number')
           return res.status(400).json({ error: 'position invalide' });
         state.shotPos = { x: clampPct(pos.x), y: clampPct(pos.y) };
+
+        // Pouvoir "Tir Surprise" : vérifié côté serveur (pas de confiance
+        // aveugle dans ce que dit le client), consommé pour ce match.
+        state.shotUsedPower = null;
+        if (body.usePower && !state.powersUsed[state.shooterIdx]) {
+          const shooterUsername = state.profiles && state.profiles[state.shooterIdx];
+          const shooterProfile = await getProfile(shooterUsername);
+          if (shooterProfile && shooterProfile.selectedPower === 'tir_surprise' &&
+              (shooterProfile.ownedPowers || []).includes('tir_surprise')) {
+            state.shotUsedPower = 'tir_surprise';
+            state.powersUsed[state.shooterIdx] = true;
+          }
+        }
+
         state.phase = 'keep';
         state.version += 1;
         await saveState(code, state);
@@ -239,10 +262,14 @@ module.exports = async (req, res) => {
         const dx = (state.shotPos.x - state.keepPos.x) / 100;
         const dy = (state.shotPos.y - state.keepPos.y) / 100;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const isSave = dist < SAVE_RADIUS;
+        const saveRadius = state.shotUsedPower === 'tir_surprise' ? SAVE_RADIUS_HARDER : SAVE_RADIUS;
+        const isSave = dist < saveRadius;
         if (!isSave) state.scores[state.shooterIdx] += 1;
 
-        state.lastResult = { isSave, shooterIdx: state.shooterIdx, shotPos: state.shotPos, keepPos: state.keepPos };
+        state.lastResult = {
+          isSave, shooterIdx: state.shooterIdx, shotPos: state.shotPos, keepPos: state.keepPos,
+          powerUsed: state.shotUsedPower,
+        };
         if (state.scores[state.shooterIdx] >= WIN_TARGET) {
           state.winner = state.shooterIdx;
 

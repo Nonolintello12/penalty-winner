@@ -60,8 +60,9 @@
       'profileBar.progress': '{wins} / {target} victoires pour le palier suivant',
       'shop.tag': 'Boutique', 'shop.title': 'Ta collection', 'shop.diamondsPrefix': '💎',
       'shop.diamondsSuffix': 'diamants — gagne-en 5 à chaque match joué.',
-      'shop.tabBalls': 'Ballons', 'shop.tabKeepers': 'Gardiens',
+      'shop.tabBalls': 'Ballons', 'shop.tabKeepers': 'Gardiens', 'shop.tabPowers': '⚡ Pouvoirs',
       'shop.styleHint': 'Le "style" est juste cosmétique : ça ne change rien aux arrêts ni aux tirs.',
+      'shop.powersHint': "Un pouvoir acheté est utilisable une fois par match, en cliquant dessus juste avant de valider ton tir.",
       'shop.backButton': 'Retour au jeu', 'shop.free': 'Gratuit', 'shop.styleLabel': ' · style +{n}%',
       'shop.chosen': 'Choisi', 'shop.choose': 'Choisir', 'shop.buy': 'Acheter',
       'waiting.label': 'Ton code de partie', 'waiting.copyButton': 'Copier le lien',
@@ -72,6 +73,8 @@
       'pitch.matchPoint': '🔥 BALLE DE MATCH 🔥',
       'mode.pillRanked': 'CLASSÉE', 'scoreboard.player1': 'Joueur 1', 'scoreboard.player2': 'Joueur 2',
       'pitch.hintAimShoot': 'Clique dans la cage pour viser ton tir', 'pitch.confirmShoot': 'Valider le tir',
+      'pitch.powerButton': '⚡ Utiliser Tir Surprise', 'pitch.powerButtonActive': '⚡ Tir Surprise activé !',
+      'pitch.resultGoalPower': '⚡ BUT SURPRISE !',
       'pitch.hintAimKeep': 'Clique où le gardien doit plonger', 'pitch.confirmKeep': 'Valider le plongeon',
       'pitch.turnTitleShoot': 'AU TIR', 'pitch.waitingShootText': '{name} vise… attends ton tour.',
       'pitch.hintWaitingShoot': "L'adversaire vise son tir",
@@ -115,8 +118,9 @@
       'profileBar.progress': '{wins} / {target} wins for the next tier',
       'shop.tag': 'Shop', 'shop.title': 'Your collection', 'shop.diamondsPrefix': '💎',
       'shop.diamondsSuffix': 'diamonds — earn 5 per match played.',
-      'shop.tabBalls': 'Balls', 'shop.tabKeepers': 'Goalkeepers',
+      'shop.tabBalls': 'Balls', 'shop.tabKeepers': 'Goalkeepers', 'shop.tabPowers': '⚡ Powers',
       'shop.styleHint': '"Style" is just cosmetic: it changes nothing about saves or shots.',
+      'shop.powersHint': 'A purchased power can be used once per match — click it right before confirming your shot.',
       'shop.backButton': 'Back to the game', 'shop.free': 'Free', 'shop.styleLabel': ' · style +{n}%',
       'shop.chosen': 'Selected', 'shop.choose': 'Select', 'shop.buy': 'Buy',
       'waiting.label': 'Your match code', 'waiting.copyButton': 'Copy link',
@@ -127,6 +131,8 @@
       'pitch.matchPoint': '🔥 MATCH POINT 🔥',
       'mode.pillRanked': 'RANKED', 'scoreboard.player1': 'Player 1', 'scoreboard.player2': 'Player 2',
       'pitch.hintAimShoot': 'Click in the goal to aim your shot', 'pitch.confirmShoot': 'Confirm shot',
+      'pitch.powerButton': '⚡ Use Surprise Shot', 'pitch.powerButtonActive': '⚡ Surprise Shot activated!',
+      'pitch.resultGoalPower': '⚡ SURPRISE GOAL!',
       'pitch.hintAimKeep': 'Click where the keeper should dive', 'pitch.confirmKeep': 'Confirm dive',
       'pitch.turnTitleShoot': 'SHOOTING', 'pitch.waitingShootText': '{name} is aiming… wait for your turn.',
       'pitch.hintWaitingShoot': 'Your opponent is aiming their shot',
@@ -189,6 +195,7 @@
   ];
   function tItemName(name) {
     if (currentLang !== 'en') return name;
+    if (name === 'Tir Surprise') return 'Surprise Shot';
     return name.replace(/^Ballon/, 'Ball');
   }
 
@@ -498,15 +505,24 @@
 
   const shoptabBtnBalls = document.getElementById('shoptab-btn-balls');
   const shoptabBtnKeepers = document.getElementById('shoptab-btn-keepers');
+  const shoptabBtnPowers = document.getElementById('shoptab-btn-powers');
   const shoptabBalls = document.getElementById('shoptab-balls');
   const shoptabKeepers = document.getElementById('shoptab-keepers');
+  const shoptabPowers = document.getElementById('shoptab-powers');
   shoptabBtnBalls.addEventListener('click', () => activateShopTab('balls'));
   shoptabBtnKeepers.addEventListener('click', () => activateShopTab('keepers'));
+  shoptabBtnPowers.addEventListener('click', () => activateShopTab('powers'));
   function activateShopTab(which) {
     shoptabBtnBalls.classList.toggle('active', which === 'balls');
     shoptabBtnKeepers.classList.toggle('active', which === 'keepers');
+    shoptabBtnPowers.classList.toggle('active', which === 'powers');
     shoptabBalls.classList.toggle('active', which === 'balls');
     shoptabKeepers.classList.toggle('active', which === 'keepers');
+    shoptabPowers.classList.toggle('active', which === 'powers');
+  }
+
+  function powerMiniIcon() {
+    return '<div class="power-icon-badge">⚡</div>';
   }
 
   async function renderShop() {
@@ -523,6 +539,11 @@
       currentProfile.ownedKeepers, currentProfile.selectedKeeper,
       (k) => keeperMiniSvg(k.jersey, k.gloves),
       (k) => (k.price === 0 ? t('shop.free') : '💎 ' + k.price) + t('shop.styleLabel', { n: k.style.toFixed(1) }));
+
+    renderShopList(document.getElementById('shop-list-powers'), catalog.powers, 'power',
+      currentProfile.ownedPowers, currentProfile.selectedPower,
+      () => powerMiniIcon(),
+      (p) => '💎 ' + p.price);
   }
 
   function renderShopList(list, catalog, kind, owned, selectedId, previewFn, priceLabelFn) {
@@ -899,7 +920,7 @@
     keeper.style.transform = 'translate(-50%,-50%) rotate(0deg)';
     requestAnimationFrame(() => { keeper.style.transition = ''; });
 
-    resultBanner.classList.remove('show', 'goal', 'save');
+    resultBanner.classList.remove('show', 'goal', 'save', 'power');
     markerShot.style.display = 'none';
     reachCircle.style.display = 'none';
     document.querySelectorAll('.confetti').forEach((c) => c.remove());
@@ -963,14 +984,25 @@
     }, 100);
   }
 
+  // ---------- Pouvoir "Tir Surprise" : à utiliser au moment du tir ----------
+  let powerActive = false;
+  const powerToggleBtn = document.getElementById('power-toggle-btn');
+  powerToggleBtn.addEventListener('click', () => {
+    powerActive = !powerActive;
+    powerToggleBtn.classList.toggle('active', powerActive);
+    powerToggleBtn.textContent = powerActive ? t('pitch.powerButtonActive') : t('pitch.powerButton');
+  });
+
   async function submitAction(pos) {
     stopAimTimer();
     btnConfirm.disabled = true;
     aimArea.disabled = true;
     btnConfirm.blur();
+    const usePower = currentMode === 'shoot' && powerActive;
     try {
-      const data = await api(currentMode, { pos });
+      const data = await api(currentMode, { pos, usePower });
       pendingPct = null;
+      powerActive = false;
       applyState(data.state);
     } catch (e) {
       pitchHint.textContent = t('pitch.errorPrefix', { error: te(e.message) });
@@ -1034,6 +1066,7 @@
     markerShot.style.display = 'none';
     btnConfirm.disabled = true;
     turnOverlay.style.display = 'none';
+    powerToggleBtn.style.display = 'none';
     pitchHint.textContent = '…';
 
     const shotPitch = toPitchCoords(r.shotPos);
@@ -1056,8 +1089,10 @@
     });
 
     setTimeout(() => {
-      resultBanner.textContent = r.isSave ? t('pitch.resultSave') : t('pitch.resultGoal');
+      const isPowerGoal = !r.isSave && r.powerUsed === 'tir_surprise';
+      resultBanner.textContent = r.isSave ? t('pitch.resultSave') : (isPowerGoal ? t('pitch.resultGoalPower') : t('pitch.resultGoal'));
       resultBanner.classList.add('show', r.isSave ? 'save' : 'goal');
+      resultBanner.classList.toggle('power', isPowerGoal);
       if (!r.isSave) spawnConfetti();
       updateScoreboard(state);
       pitchHint.textContent = r.isSave ? t('pitch.hintResultSave') : t('pitch.hintResultGoal');
@@ -1075,11 +1110,12 @@
     const keeperRole = shooterRole === 'p1' ? 'p2' : 'p1';
     const shooterName = state.players[state.shooterIdx];
     const keeperName = state.players[state.shooterIdx === 0 ? 1 : 0];
+    const myIdx = myRole === 'p1' ? 0 : 1;
 
     const iAmShooting = state.phase === 'shoot' && myRole === shooterRole;
     const iAmKeeping = state.phase === 'keep' && myRole === keeperRole;
 
-    resultBanner.classList.remove('show', 'goal', 'save');
+    resultBanner.classList.remove('show', 'goal', 'save', 'power');
 
     if (iAmShooting) {
       currentMode = 'shoot';
@@ -1089,6 +1125,13 @@
       btnConfirm.textContent = t('pitch.confirmShoot');
       btnConfirm.disabled = !pendingPct;
       startAimTimer();
+
+      const canUsePower = currentProfile && currentProfile.selectedPower === 'tir_surprise' &&
+        currentProfile.ownedPowers.includes('tir_surprise') && !(state.powersUsed && state.powersUsed[myIdx]);
+      powerToggleBtn.style.display = canUsePower ? 'block' : 'none';
+      if (!canUsePower) powerActive = false;
+      powerToggleBtn.classList.toggle('active', powerActive);
+      powerToggleBtn.textContent = powerActive ? t('pitch.powerButtonActive') : t('pitch.powerButton');
     } else if (iAmKeeping) {
       currentMode = 'keep';
       aimArea.disabled = false;
@@ -1097,12 +1140,14 @@
       btnConfirm.textContent = t('pitch.confirmKeep');
       btnConfirm.disabled = !pendingPct;
       startAimTimer();
+      powerToggleBtn.style.display = 'none';
     } else {
       currentMode = null;
       aimArea.disabled = true;
       btnConfirm.disabled = true;
       pendingPct = null;
       stopAimTimer();
+      powerToggleBtn.style.display = 'none';
       turnOverlay.style.display = 'flex';
       if (state.phase === 'shoot') {
         turnOverlayTitle.textContent = t('pitch.turnTitleShoot');

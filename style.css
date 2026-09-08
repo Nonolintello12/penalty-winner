@@ -148,6 +148,21 @@ h1,h2,.display{ font-family:'Anton', sans-serif; font-weight:400; letter-spacing
 }
 .aim-timer-fill.urgent{ background:var(--save-red); }
 
+.power-toggle-btn{
+  display:block; width:100%; margin:10px 0 0; padding:10px; border-radius:9px;
+  border:1px solid rgba(123,43,255,.5); background:rgba(123,43,255,.1); color:#C9A8FF;
+  font-family:'Work Sans',sans-serif; font-weight:700; font-size:13px; cursor:pointer;
+}
+.power-toggle-btn.active{
+  background:linear-gradient(90deg,#7B2BFF,#FF2BD6); color:#fff; border-color:transparent;
+  box-shadow:0 0 16px rgba(123,43,255,.6);
+}
+.power-icon-badge{
+  width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:22px; background:rgba(123,43,255,.15); border:1px solid rgba(123,43,255,.4); flex:none;
+}
+.result-banner.power{ background:linear-gradient(90deg,#7B2BFF,#FF2BD6); color:#fff; }
+
 .pitch.shake{ animation: pitch-shake .35s ease-in-out; }
 @keyframes pitch-shake{
   0%,100%{ transform:translateX(0); }

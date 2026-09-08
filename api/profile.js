@@ -37,6 +37,7 @@ module.exports = async (req, res) => {
         username, secretCode, rankIndex: 0, wins: 0, totalWins: 0,
         diamonds: 0, ownedBalls: ['classique'], selectedBall: 'classique',
         ownedKeepers: ['classique'], selectedKeeper: 'classique',
+        ownedPowers: [], selectedPower: null,
         createdAt: Date.now(),
       };
       await redis.set(key, profile);
